@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Boardgame Scoresheets">
+<title>Boardgame Scoresheets</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green:    #2d6a4f;
+  --green2:   #40916c;
+  --green-bg: #d8f3dc;
+  --bg:       #f0ede6;
+  --surface:  #fff;
+  --border:   #e0ddd5;
+  --text:     #1c1c1e;
+  --muted:    #6b6b72;
+  --r: 14px;
+  --shadow: 0 2px 14px rgba(0,0,0,.08);
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+/* ── Header ── */
+.hdr {
+  background: var(--green);
+  color: #fff;
+  padding: 12px 16px;
+  padding-top: calc(12px + var(--safe-top));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.hdr h1 { font-size: 19px; font-weight: 700; flex: 1; }
+.btn-back {
+  background: rgba(255,255,255,.2);
+  border: none; color: #fff;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Content ── */
+.content {
+  padding: 16px;
+  padding-bottom: calc(110px + var(--safe-bottom));
+}
+
+/* ── Utility labels ── */
+.sec-label {
+  font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px;
+  color: var(--muted);
+  padding: 14px 0 8px;
+}
+
+/* ── Game cards (home) ── */
+.game-card {
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 18px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 16px;
+  border: 2px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+.game-card:active { border-color: var(--green); }
+.game-icon { font-size: 44px; flex-shrink: 0; }
+.game-info h2 { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+.game-info p  { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.game-arrow   { font-size: 22px; color: #ccc; margin-left: auto; flex-shrink: 0; }
+
+/* ── Setup ── */
+.player-row {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.p-dot {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.p-input {
+  flex: 1; border: none; background: transparent;
+  font-size: 16px; font-family: inherit; color: var(--text); outline: none;
+}
+.btn-rm {
+  background: none; border: none;
+  color: #ff3b30; font-size: 26px;
+  cursor: pointer; padding: 0 2px; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-add {
+  background: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 14px; width: 100%;
+  font-size: 15px; color: var(--muted);
+  cursor: pointer; margin-bottom: 16px; font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: var(--green); color: #fff;
+  border: none; border-radius: var(--r);
+  padding: 16px; width: 100%;
+  font-size: 17px; font-weight: 600;
+  cursor: pointer; font-family: inherit; margin-top: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active  { opacity: .85; }
+.btn-primary:disabled { opacity: .38; cursor: not-allowed; }
+.btn-secondary {
+  background: #888; color: #fff;
+  border: none; border-radius: var(--r);
+  padding: 14px; width: 100%;
+  font-size: 16px; font-weight: 600;
+  cursor: pointer; font-family: inherit; margin-top: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Score sections ── */
+.score-section {
+  background: var(--surface);
+  border-radius: var(--r);
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.sec-hdr {
+  background: var(--green2); color: #fff;
+  padding: 9px 14px;
+  font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .6px;
+}
+.score-row {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.score-row:last-child { border-bottom: none; }
+.row-label { font-size: 14px; font-weight: 600; }
+.row-desc  { font-size: 12px; color: var(--muted); margin: 2px 0 10px; line-height: 1.3; }
+
+.inputs-row {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+/* ── Number widget ── */
+.num-wrap {
+  flex: 1; min-width: 82px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+.num-pname {
+  font-size: 11px; font-weight: 600;
+  text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+  width: 100%; text-align: center;
+}
+.num-ctrl {
+  display: flex; align-items: center; gap: 4px; width: 100%;
+}
+.nbtn {
+  width: 38px; height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: #f4f2ec;
+  font-size: 20px; font-weight: 300;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.nbtn:active { background: var(--green-bg); color: var(--green); }
+.nfield {
+  flex: 1; text-align: center;
+  font-size: 20px; font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 5px 2px; min-width: 0;
+  color: var(--text); background: #fff;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ── Habitat badge ── */
+.hab-badge {
+  font-size: 12px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--green-bg); color: var(--green);
+}
+.hab-badge.zero { background: #eee; color: #aaa; }
+
+/* ── Sticky total bar ── */
+.total-bar {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 600px;
+  background: var(--green); color: #fff;
+  padding: 10px 16px;
+  padding-bottom: calc(10px + var(--safe-bottom));
+  display: flex; gap: 6px;
+  z-index: 20;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.15);
+}
+.total-player {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; min-width: 0;
+}
+.total-name {
+  font-size: 11px; opacity: .7;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  width: 100%; text-align: center;
+}
+.total-pts   { font-size: 28px; font-weight: 800; line-height: 1.1; }
+.total-lbl   { font-size: 10px; opacity: .55; }
+
+/* ── Results ── */
+.result-card {
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 14px 16px; margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 12px;
+  border: 2px solid transparent;
+}
+.result-card.winner { border-color: #ffd700; }
+.result-rank  { font-size: 28px; flex-shrink: 0; }
+.result-name  { font-size: 16px; font-weight: 700; }
+.result-diff  { font-size: 12px; color: var(--muted); }
+.result-score { font-size: 30px; font-weight: 800; color: var(--green); margin-left: auto; flex-shrink: 0; }
+
+.hint-box {
+  background: #fff8e6;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px; line-height: 1.5;
+  margin-top: 8px;
+}
+
+/* ── Toggle switch ── */
+.toggle-row {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.toggle-label { flex: 1; }
+.toggle-label strong { font-size: 15px; display: block; margin-bottom: 2px; }
+.toggle-label span   { font-size: 12px; color: var(--muted); line-height: 1.4; display: block; }
+.toggle {
+  position: relative;
+  width: 50px; height: 28px; flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute; inset: 0;
+  border-radius: 28px;
+  background: #ccc;
+  transition: background .2s;
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 3px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  transition: transform .2s;
+}
+.toggle input:checked + .toggle-track { background: var(--green); }
+.toggle input:checked + .toggle-track::after { transform: translateX(22px); }
+
+/* ── Landmarks section header (distinct colour) ── */
+.sec-hdr.landmarks { background: #6b4f2a; }
+
+/* ── Subtotal row (T / G) ── */
+.subtotal-row {
+  background: var(--green-bg);
+  border-top: 1px solid #b7e4c7;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.subtotal-label {
+  font-size: 12px; font-weight: 700;
+  color: var(--green);
+  white-space: nowrap;
+}
+.subtotal-vals {
+  display: flex; gap: 8px; flex: 1; overflow-x: auto;
+}
+.subtotal-val {
+  flex: 1; min-width: 82px;
+  text-align: center;
+  font-size: 17px; font-weight: 800;
+  color: var(--green);
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ─── State ────────────────────────────────────────────────────────────────
+const state = {
+  screen: 'home',
+  game:   null,
+  players: [],
+  scores:  {},
+  useLandmarks: false
+};
+
+// ─── Game definitions ─────────────────────────────────────────────────────
+const GAMES = {
+  cascadia: {
+    id: 'cascadia', name: 'Cascadia', icon: '🦦',
+    desc: 'Wildnis-Puzzle mit Tieren & Lebensräumen (1–5 Spieler)',
+    min: 1, max: 5,
+    sections: [
+      {
+        id: 'wildlife', label: 'Tierwertung', type: 'input',
+        subtotal: 'T · Zwischensumme',
+        cats: [
+          { id: 'bear',   label: '🐻 Bär',         desc: 'Punkte aus der Bären-Wertungskarte' },
+          { id: 'elk',    label: '🦌 Elch',         desc: 'Punkte aus der Elch-Wertungskarte' },
+          { id: 'salmon', label: '🐟 Lachs',        desc: 'Punkte aus der Lachs-Wertungskarte' },
+          { id: 'hawk',   label: '🦅 Greifvogel',   desc: 'Punkte aus der Greifvogel-Wertungskarte' },
+          { id: 'fox',    label: '🦊 Fuchs',        desc: 'Punkte aus der Fuchs-Wertungskarte' },
+        ]
+      },
+      {
+        id: 'nature', label: 'Bonuspunkte', type: 'input',
+        cats: [
+          { id: 'nature', label: '🌰 Naturmarker', desc: 'Anzahl übrig gebliebener Marker (je 1 Punkt)' }
+        ]
+      },
+      {
+        id: 'habitats', label: 'Lebensraum-Boni', type: 'habitat',
+        subtotal: 'G · Zwischensumme',
+        cats: [
+          { id: 'h_mtn', label: '⛰️ Berg',         desc: 'Größte zusammenhängende Gruppe eingeben' },
+          { id: 'h_fst', label: '🌲 Wald',         desc: 'Größte zusammenhängende Gruppe eingeben' },
+          { id: 'h_pra', label: '🌾 Prärie',       desc: 'Größte zusammenhängende Gruppe eingeben' },
+          { id: 'h_wet', label: '🌿 Feuchtgebiet', desc: 'Größte zusammenhängende Gruppe eingeben' },
+          { id: 'h_riv', label: '🏞️ Fluss',        desc: 'Größte zusammenhängende Gruppe eingeben' },
+        ]
+      }
+    ]
+  },
+
+  everdell: {
+    id: 'everdell', name: 'Everdell', icon: '🐿️',
+    desc: 'Stadtbau mit Karten und Arbeitern (1–4 Spieler)',
+    min: 1, max: 4,
+    sections: [
+      {
+        id: 'main', label: 'Punkte', type: 'input',
+        cats: [
+          { id: 'cards',   label: '🏘️ Kartenpunkte',    desc: 'Summe der ♦-Punkte aller Karten in deiner Stadt' },
+          { id: 'tokens',  label: '🪙 Punktmarker',      desc: 'Während des Spiels gesammelte Punktmarker' },
+          { id: 'events',  label: '🎪 Ereignisse',       desc: 'Punkte aus abgeschlossenen Ereignissen & Preisen' },
+          { id: 'journey', label: '🗺️ Reise',            desc: 'Punkte aus Reisen am Ende der Herbstsaison' },
+          { id: 'misc',    label: '✨ Wohlstand & Sonstiges', desc: 'Wohlstandskarten und weitere Bonuspunkte' },
+        ]
+      }
+    ]
+  }
+};
+
+const COLORS = ['#2d6a4f', '#c1121f', '#e07c24', '#1d4e89', '#6a3d9a'];
+const EMOJIS = ['🟢', '🔴', '🟠', '🔵', '🟣'];
+
+// ─── Cascadia: Landmarks expansion ───────────────────────────────────────
+// Die Erweiterung enthält 5 Landmarken-Plättchen (je 2-seitig A/B).
+// Jeder Spieler berechnet seine Punkte anhand seiner Plättchen selbst.
+const LANDMARK_SECTION = {
+  id: 'landmarks', label: '🗿 Landmarks-Erweiterung', type: 'input', isLandmarks: true,
+  cats: [
+    { id: 'lm_total', label: '⛰️ Landmarks', desc: 'Gesamtpunkte aus allen Landmarken-Plättchen' },
+  ]
+};
+
+// ─── Persistence ──────────────────────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('sp2_state', JSON.stringify(state)); } catch (_) {}
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem('sp2_state') || 'null');
+    if (s && s.game && GAMES[s.game]) Object.assign(state, s);
+  } catch (_) {}
+}
+
+// ─── Score logic ──────────────────────────────────────────────────────────
+function activeSections() {
+  const g = GAMES[state.game];
+  const extras = (state.game === 'cascadia' && state.useLandmarks) ? [LANDMARK_SECTION] : [];
+  return [...g.sections, ...extras];
+}
+
+function initScores() {
+  state.scores = {};
+  state.players.forEach((_, pi) => {
+    activeSections().forEach(sec => sec.cats.forEach(cat => {
+      state.scores[`${pi}_${cat.id}`] = 0;
+    }));
+  });
+}
+
+function getScore(pi, id)    { return state.scores[`${pi}_${id}`] ?? 0; }
+function rawSet(pi, id, v)   { state.scores[`${pi}_${id}`] = Math.max(0, parseInt(v) || 0); }
+
+function habitatBonuses(catId) {
+  const sizes  = state.players.map((_, pi) => getScore(pi, catId));
+  const n      = state.players.length;
+  const maxVal = Math.max(...sizes);
+
+  if (maxVal === 0) return sizes.map(() => 0);
+
+  // ── 2 Spieler ────────────────────────────────────────────────────────
+  if (n === 2) {
+    if (sizes[0] === sizes[1]) return [1, 1];          // Gleichstand → je 1
+    return sizes.map(s => s === maxVal ? 2 : 0);       // Größtes → 2, anderes → 0
+  }
+
+  // ── 3+ Spieler ───────────────────────────────────────────────────────
+  const firstCount = sizes.filter(s => s === maxVal).length;
+
+  if (firstCount >= 3) {
+    // 3 oder mehr gleichauf → je 1 Pkt, kein Zweitplatz
+    return sizes.map(s => s === maxVal ? 1 : 0);
+  }
+
+  // 1 oder 2 gleichauf → je 3 Pkt
+  const secondMax   = Math.max(...sizes.filter(s => s < maxVal));
+  const secondCount = sizes.filter(s => s === secondMax).length;
+
+  return sizes.map(s => {
+    if (s === maxVal)  return 3;
+    // Zweitplatz: nur Punkte wenn genau 1 Spieler diesen Wert hat
+    if (s === secondMax && secondCount === 1) return 1;
+    return 0;
+  });
+}
+
+function sectionSubtotal(sec, pi) {
+  return sec.cats.reduce((sum, cat) => {
+    return sum + (sec.type === 'habitat' ? habitatBonuses(cat.id)[pi] : getScore(pi, cat.id));
+  }, 0);
+}
+
+function playerTotal(pi) {
+  let t = 0;
+  activeSections().forEach(sec => {
+    sec.cats.forEach(cat => {
+      t += sec.type === 'habitat'
+        ? habitatBonuses(cat.id)[pi]
+        : getScore(pi, cat.id);
+    });
+  });
+  return t;
+}
+
+// ─── Targeted DOM updates (avoid full re-render during input) ────────────
+function updateTotals() {
+  state.players.forEach((_, pi) => {
+    const el = document.getElementById(`tot-${pi}`);
+    if (el) el.textContent = playerTotal(pi);
+    activeSections().forEach(sec => {
+      if (sec.subtotal) {
+        const sub = document.getElementById(`sub-${sec.id}-${pi}`);
+        if (sub) sub.textContent = sectionSubtotal(sec, pi);
+      }
+    });
+  });
+}
+
+function updateHabBadges(catId) {
+  const b = habitatBonuses(catId);
+  state.players.forEach((_, pi) => {
+    const el = document.getElementById(`hb-${pi}-${catId}`);
+    if (el) {
+      el.textContent = `+${b[pi]} Pkt`;
+      el.className = `hab-badge${b[pi] === 0 ? ' zero' : ''}`;
+    }
+    const tot = document.getElementById(`tot-${pi}`);
+    if (tot) tot.textContent = playerTotal(pi);
+    // Habitat subtotal
+    const habSec = activeSections().find(s => s.id === 'habitats');
+    if (habSec) {
+      const sub = document.getElementById(`sub-habitats-${pi}`);
+      if (sub) sub.textContent = sectionSubtotal(habSec, pi);
+    }
+  });
+}
+
+// ─── Rendering ────────────────────────────────────────────────────────────
+function render() {
+  document.getElementById('app').innerHTML = (
+    { home: renderHome, setup: renderSetup, scoring: renderScoring, results: renderResults }
+    [state.screen] || renderHome
+  )();
+  save();
+}
+
+function renderHome() {
+  return `
+  <div class="hdr"><h1>🎲 Boardgame Scoresheets</h1></div>
+  <div class="content">
+    <div class="sec-label">Spiel auswählen</div>
+    ${Object.values(GAMES).map(g => `
+      <div class="game-card" onclick="selectGame('${g.id}')">
+        <div class="game-icon">${g.icon}</div>
+        <div class="game-info">
+          <h2>${g.name}</h2>
+          <p>${g.desc}</p>
+        </div>
+        <div class="game-arrow">›</div>
+      </div>
+    `).join('')}
+    <div class="hint-box" style="margin-top:4px">
+      💡 Tipp: Im Safari-Browser auf „Teilen" → „Zum Home-Bildschirm" tippen, um die App wie eine echte App zu installieren.
+    </div>
+  </div>`;
+}
+
+function renderSetup() {
+  const g = GAMES[state.game];
+  if (!state.players.length) state.players = ['Spieler 1', 'Spieler 2'];
+  const ok = state.players.length >= g.min && state.players.every(p => p.trim());
+  return `
+  <div class="hdr">
+    <button class="btn-back" onclick="goHome()">‹</button>
+    <h1>${g.icon} ${g.name}</h1>
+  </div>
+  <div class="content">
+    <div class="sec-label">Spielernamen</div>
+    ${state.players.map((name, i) => `
+      <div class="player-row">
+        <div class="p-dot" style="background:${COLORS[i]}22;color:${COLORS[i]}">${EMOJIS[i]}</div>
+        <input class="p-input" type="text" value="${esc(name)}"
+          placeholder="Spieler ${i + 1}"
+          oninput="state.players[${i}]=this.value">
+        ${state.players.length > g.min
+          ? `<button class="btn-rm" onclick="removePlayer(${i})">−</button>` : ''}
+      </div>
+    `).join('')}
+    ${state.players.length < g.max
+      ? `<button class="btn-add" onclick="addPlayer()">+ Spieler hinzufügen</button>`
+      : ''}
+    ${state.game === 'cascadia' ? `
+      <div class="sec-label">Erweiterungen</div>
+      <div class="toggle-row" onclick="toggleLandmarks()">
+        <div class="toggle-label">
+          <strong>🗿 Landmarks-Erweiterung</strong>
+          <span>Fügt eine Zeile für die Landmarks-Gesamtpunkte hinzu</span>
+        </div>
+        <label class="toggle" onclick="event.stopPropagation()">
+          <input type="checkbox" ${state.useLandmarks ? 'checked' : ''} onchange="toggleLandmarks()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+    ` : ''}
+    <button class="btn-primary" ${ok ? '' : 'disabled'} onclick="startScoring()">
+      Punktzählung starten →
+    </button>
+  </div>`;
+}
+
+function renderScoring() {
+  const g = GAMES[state.game];
+  const suffix = (state.game === 'cascadia' && state.useLandmarks) ? ' + Landmarks' : '';
+  return `
+  <div class="hdr">
+    <button class="btn-back" onclick="goSetup()">‹</button>
+    <h1>${g.icon} ${g.name}${suffix}</h1>
+  </div>
+  <div class="content">
+    ${activeSections().map(sec => renderSection(sec)).join('')}
+    <button class="btn-primary" onclick="showResults()">
+      Ergebnis anzeigen 🏆
+    </button>
+  </div>
+  <div class="total-bar">
+    ${state.players.map((name, pi) => `
+      <div class="total-player">
+        <div class="total-name">${esc(name)}</div>
+        <div class="total-pts" id="tot-${pi}">${playerTotal(pi)}</div>
+        <div class="total-lbl">Punkte</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderSection(sec) {
+  return `
+  <div class="score-section">
+    <div class="sec-hdr${sec.isLandmarks ? ' landmarks' : ''}">${sec.label}</div>
+    ${sec.cats.map(cat =>
+      sec.type === 'habitat' ? renderHabitatRow(cat) : renderInputRow(cat)
+    ).join('')}
+    ${sec.subtotal ? `
+      <div class="subtotal-row">
+        <div class="subtotal-label">${sec.subtotal}</div>
+        <div class="subtotal-vals">
+          ${state.players.map((_, pi) => `
+            <div class="subtotal-val" id="sub-${sec.id}-${pi}">${sectionSubtotal(sec, pi)}</div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+  </div>`;
+}
+
+function renderInputRow(cat) {
+  return `
+  <div class="score-row">
+    <div class="row-label">${cat.label}</div>
+    <div class="row-desc">${cat.desc}</div>
+    <div class="inputs-row">
+      ${state.players.map((name, pi) => `
+        <div class="num-wrap">
+          <div class="num-pname" style="color:${COLORS[pi]}">${esc(name)}</div>
+          <div class="num-ctrl">
+            <button class="nbtn" onclick="adj(${pi},'${cat.id}',-1,false)">−</button>
+            <input class="nfield" id="sc-${pi}-${cat.id}"
+              type="number" inputmode="numeric" min="0"
+              value="${getScore(pi, cat.id)}"
+              oninput="onScoreInput(${pi},'${cat.id}',this.value,false)">
+            <button class="nbtn" onclick="adj(${pi},'${cat.id}',1,false)">+</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function renderHabitatRow(cat) {
+  const b    = habitatBonuses(cat.id);
+  const n    = state.players.length;
+  const hint = n === 2
+    ? '🥇 2 Pkt · Gleichstand: je 1 Pkt'
+    : '🥇 3 Pkt · 🥈 1 Pkt · 3+ Gleichstand: je 1 Pkt · Gleichstand 2. Platz: 0 Pkt';
+  return `
+  <div class="score-row">
+    <div class="row-label">${cat.label}</div>
+    <div class="row-desc">${cat.desc} · ${hint}</div>
+    <div class="inputs-row">
+      ${state.players.map((name, pi) => `
+        <div class="num-wrap">
+          <div class="num-pname" style="color:${COLORS[pi]}">${esc(name)}</div>
+          <div class="num-ctrl">
+            <button class="nbtn" onclick="adj(${pi},'${cat.id}',-1,true)">−</button>
+            <input class="nfield" id="sc-${pi}-${cat.id}"
+              type="number" inputmode="numeric" min="0"
+              value="${getScore(pi, cat.id)}"
+              oninput="onScoreInput(${pi},'${cat.id}',this.value,true)">
+            <button class="nbtn" onclick="adj(${pi},'${cat.id}',1,true)">+</button>
+          </div>
+          <div class="hab-badge${b[pi]===0?' zero':''}" id="hb-${pi}-${cat.id}">+${b[pi]} Pkt</div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function renderResults() {
+  const g = GAMES[state.game];
+  const data = state.players
+    .map((name, pi) => ({ name, pi, total: playerTotal(pi) }))
+    .sort((a, b) => b.total - a.total);
+
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  let rank = 1;
+  const ranked = data.map((r, i) => {
+    if (i > 0 && r.total < data[i-1].total) rank = i + 1;
+    return { ...r, rank };
+  });
+  const max  = ranked[0].total;
+  const tied = ranked.length > 1 && ranked[0].total === ranked[1].total;
+
+  return `
+  <div class="hdr">
+    <button class="btn-back" onclick="state.screen='scoring';render()">‹</button>
+    <h1>🏆 Ergebnis</h1>
+  </div>
+  <div class="content">
+    <div class="sec-label" style="text-align:center">${g.icon} ${g.name}</div>
+    ${ranked.map((r, i) => `
+      <div class="result-card${i===0?' winner':''}">
+        <div class="result-rank">${medals[r.rank-1] || r.rank+'.'}</div>
+        <div>
+          <div class="result-name" style="color:${COLORS[r.pi]}">${esc(r.name)}</div>
+          <div class="result-diff">${r.rank===1 ? '🎉 Gewinner!' : `${max - r.total} Punkte zurück`}</div>
+        </div>
+        <div class="result-score">${r.total}</div>
+      </div>
+    `).join('')}
+    ${tied ? `<div class="hint-box">🤝 <strong>Gleichstand!</strong> Bitte die Spielregel für Unentschieden prüfen.</div>` : ''}
+    <button class="btn-primary" style="margin-top:16px" onclick="goHome()">Neues Spiel</button>
+    <button class="btn-secondary" onclick="resetScores()">Neue Runde (gleiche Spieler)</button>
+  </div>`;
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────
+function toggleLandmarks() {
+  state.useLandmarks = !state.useLandmarks;
+  render();
+}
+
+function selectGame(id) {
+  state.game = id;
+  state.players = [];
+  state.scores  = {};
+  state.useLandmarks = false;
+  state.screen  = 'setup';
+  render();
+}
+
+function goHome() {
+  state.screen = 'home';
+  render();
+}
+
+function goSetup() {
+  document.querySelectorAll('.p-input').forEach((el, i) => {
+    state.players[i] = el.value || `Spieler ${i+1}`;
+  });
+  state.screen = 'setup';
+  render();
+}
+
+function addPlayer() {
+  const g = GAMES[state.game];
+  if (state.players.length < g.max)
+    state.players.push(`Spieler ${state.players.length + 1}`);
+  render();
+}
+
+function removePlayer(i) {
+  document.querySelectorAll('.p-input').forEach((el, j) => {
+    state.players[j] = el.value || `Spieler ${j+1}`;
+  });
+  state.players.splice(i, 1);
+  render();
+}
+
+function startScoring() {
+  document.querySelectorAll('.p-input').forEach((el, i) => {
+    state.players[i] = el.value.trim() || `Spieler ${i+1}`;
+  });
+  initScores();
+  state.screen = 'scoring';
+  render();
+}
+
+function onScoreInput(pi, catId, val, isHabitat) {
+  const n = parseInt(val);
+  if (!isNaN(n) && n >= 0) rawSet(pi, catId, n);
+  if (isHabitat) updateHabBadges(catId);
+  else updateTotals();
+}
+
+function adj(pi, catId, delta, isHabitat) {
+  rawSet(pi, catId, getScore(pi, catId) + delta);
+  const inp = document.getElementById(`sc-${pi}-${catId}`);
+  if (inp) inp.value = getScore(pi, catId);
+  if (isHabitat) updateHabBadges(catId);
+  else updateTotals();
+  save();
+}
+
+function showResults() {
+  state.screen = 'results';
+  render();
+}
+
+function resetScores() {
+  initScores();
+  state.screen = 'scoring';
+  render();
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────
+load();
+render();
+</script>
+</body>
+</html>
