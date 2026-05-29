@@ -19,8 +19,8 @@
   --border:   #e0ddd5;
   --text:     #1c1c1e;
   --muted:    #6b6b72;
-  --r: 14px;
-  --shadow: 0 2px 14px rgba(0,0,0,.08);
+  --r: 16px;
+  --shadow: 0 2px 12px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
   --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -37,7 +37,7 @@ body {
 
 /* ── Header ── */
 .hdr {
-  background: var(--green);
+  background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
   color: #fff;
   padding: 12px 16px;
   padding-top: calc(12px + var(--safe-top));
@@ -48,7 +48,19 @@ body {
   top: 0;
   z-index: 10;
 }
-.hdr h1 { font-size: 19px; font-weight: 700; flex: 1; }
+.hdr h1 { font-size: 20px; font-weight: 700; flex: 1; letter-spacing: -.2px; }
+.hdr-home {
+  display: flex; flex-direction: column;
+  padding: 20px 16px 18px;
+  padding-top: calc(20px + var(--safe-top));
+  gap: 0;
+}
+.hdr-home .hdr-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: rgba(255,255,255,.6);
+  margin-bottom: 5px;
+}
+.hdr-home h1 { font-size: 26px; font-weight: 800; letter-spacing: -.4px; }
 .btn-back {
   background: rgba(255,255,255,.2);
   border: none; color: #fff;
@@ -69,29 +81,33 @@ body {
 
 /* ── Utility labels ── */
 .sec-label {
-  font-size: 12px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .5px;
-  color: var(--muted);
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .8px;
+  color: #8a8478;
   padding: 14px 0 8px;
 }
 
 /* ── Game cards (home) ── */
 .game-card {
   background: var(--surface);
-  border-radius: var(--r);
-  padding: 18px;
-  margin-bottom: 12px;
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
   box-shadow: var(--shadow);
   cursor: pointer;
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center; gap: 14px;
   border: 2px solid transparent;
   -webkit-tap-highlight-color: transparent;
 }
-.game-card:active { border-color: var(--green); }
-.game-icon { font-size: 44px; flex-shrink: 0; }
-.game-info h2 { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
-.game-info p  { font-size: 13px; color: var(--muted); line-height: 1.4; }
-.game-arrow   { font-size: 22px; color: #ccc; margin-left: auto; flex-shrink: 0; }
+.game-card:active { border-color: var(--green); opacity: .9; }
+.game-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+}
+.game-info h2 { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+.game-info p  { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.game-arrow   { font-size: 18px; color: #ccc; margin-left: auto; flex-shrink: 0; }
 
 /* ── Setup ── */
 .player-row {
@@ -314,6 +330,144 @@ input[type=number] { -moz-appearance: textfield; }
 /* ── Landmarks section header (distinct colour) ── */
 .sec-hdr.landmarks { background: #6b4f2a; }
 
+/* ── Flip 7 round table ── */
+.round-table-wrap {
+  background: var(--surface);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.round-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 280px;
+}
+.round-table th {
+  background: #1a3a5c;
+  color: #fff;
+  padding: 9px 12px;
+  font-size: 12px; font-weight: 700;
+  text-align: center;
+}
+.round-table td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+.round-table td:first-child {
+  font-size: 11px; font-weight: 700;
+  color: var(--muted);
+  background: #f8f6f0;
+  width: 32px;
+}
+.round-table tr:last-child td { border-bottom: none; }
+.round-total-row td {
+  background: #e8f0fb;
+  font-weight: 800; font-size: 17px;
+  color: #1a3a5c;
+  border-top: 2px solid #1a3a5c;
+}
+.round-total-row td:first-child { color: #1a3a5c; font-size: 12px; }
+.td-win { color: #b8860b !important; }
+.td-win::after { content: ' 🏆'; font-size: 11px; }
+.sec-hdr.flip7 { background: #1a3a5c; }
+
+/* ── Flip 7 player tap cards ── */
+.player-pick-grid {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  padding: 14px;
+}
+.player-pick-card {
+  flex: 1; min-width: calc(50% - 5px);
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 16px 10px;
+  text-align: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,.08);
+  cursor: pointer;
+  border: 2px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+.player-pick-card:active { opacity: .75; }
+.ppc-name  { font-size: 12px; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ppc-score { font-size: 34px; font-weight: 900; color: #1a3a5c; line-height: 1; }
+.ppc-hint  { font-size: 10px; color: var(--muted); margin-top: 5px; }
+
+/* ── Card picker bottom sheet ── */
+.picker-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 200;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.picker-sheet {
+  background: #fff;
+  border-radius: 22px 22px 0 0;
+  padding: 0 16px 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  max-height: 90vh; overflow-y: auto;
+}
+.picker-handle {
+  width: 38px; height: 4px; background: #ddd;
+  border-radius: 2px; margin: 12px auto 14px;
+}
+.picker-hdr {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.picker-name  { font-size: 17px; font-weight: 700; }
+.picker-total { font-size: 42px; font-weight: 900; color: #1a3a5c; line-height: 1; }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px; margin-bottom: 12px;
+}
+.card-btn {
+  aspect-ratio: 2/3;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: #f4f2ec;
+  font-size: 22px; font-weight: 800;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: transform .08s;
+}
+.card-btn.sel {
+  background: #1a3a5c; border-color: #1a3a5c; color: #fff;
+  box-shadow: 0 3px 8px rgba(26,58,92,.35);
+}
+.card-btn:active { transform: scale(.88); }
+.picker-selected {
+  background: #eef4fb; border-radius: 10px;
+  padding: 10px 14px; font-size: 13px; color: #1a3a5c;
+  margin-bottom: 12px; min-height: 38px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.sel-chip {
+  background: #1a3a5c; color: #fff;
+  border-radius: 6px; padding: 2px 8px;
+  font-size: 13px; font-weight: 700;
+}
+.sel-chip.bonus { background: #2d6a4f; }
+.sel-chip.x2    { background: #b8860b; }
+.card-btn.bonus.sel { background: #2d6a4f; border-color: #2d6a4f; color: #fff; box-shadow: 0 3px 8px rgba(45,106,79,.35); }
+.card-btn.x2 {
+  grid-column: 1 / -1; aspect-ratio: auto;
+  padding: 13px; font-size: 17px; font-weight: 900;
+  letter-spacing: .5px;
+}
+.card-btn.x2.sel { background: #b8860b; border-color: #b8860b; color: #fff; box-shadow: 0 3px 8px rgba(184,134,11,.35); }
+.bonus-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--muted);
+  margin: 10px 0 6px;
+}
+
 /* ── Subtotal row (T / G) ── */
 .subtotal-row {
   background: var(--green-bg);
@@ -348,13 +502,16 @@ const state = {
   game:   null,
   players: [],
   scores:  {},
-  useLandmarks: false
+  useLandmarks: false,
+  rounds: [],
+  currentRound: [],
+  cardPicker: { open: false, pi: null, selected: [], bonusCards: [], x2: false }
 };
 
 // ─── Game definitions ─────────────────────────────────────────────────────
 const GAMES = {
   cascadia: {
-    id: 'cascadia', name: 'Cascadia', icon: '🦦',
+    id: 'cascadia', name: 'Cascadia', icon: '🦦', iconBg: '#d8f3dc',
     desc: 'Wildnis-Puzzle mit Tieren & Lebensräumen (1–5 Spieler)',
     min: 1, max: 5,
     sections: [
@@ -389,8 +546,15 @@ const GAMES = {
     ]
   },
 
+  flip7: {
+    id: 'flip7', name: 'Flip 7', icon: '🃏', iconBg: '#dbeafe',
+    desc: 'Push-your-luck Kartenspiel · Endet bei 200+ Punkten',
+    min: 2, max: 8,
+    gameType: 'rounds', winScore: 200,
+  },
+
   everdell: {
-    id: 'everdell', name: 'Everdell', icon: '🐿️',
+    id: 'everdell', name: 'Everdell Duo', icon: '🐿️', iconBg: '#fef3c7',
     desc: 'Stadtbau mit Karten und Arbeitern (1–4 Spieler)',
     min: 1, max: 4,
     sections: [
@@ -536,22 +700,30 @@ function updateHabBadges(catId) {
 }
 
 // ─── Rendering ────────────────────────────────────────────────────────────
+function isRoundGame() { return state.game && GAMES[state.game].gameType === 'rounds'; }
+
 function render() {
-  document.getElementById('app').innerHTML = (
-    { home: renderHome, setup: renderSetup, scoring: renderScoring, results: renderResults }
-    [state.screen] || renderHome
-  )();
+  let fn;
+  if      (state.screen === 'home')    fn = renderHome;
+  else if (state.screen === 'setup')   fn = renderSetup;
+  else if (state.screen === 'scoring') fn = isRoundGame() ? renderRoundScoring : renderScoring;
+  else if (state.screen === 'results') fn = isRoundGame() ? renderRoundResults : renderResults;
+  else                                 fn = renderHome;
+  document.getElementById('app').innerHTML = fn();
   save();
 }
 
 function renderHome() {
   return `
-  <div class="hdr"><h1>🎲 Boardgame Scoresheets</h1></div>
+  <div class="hdr hdr-home">
+    <div class="hdr-eyebrow">Boardgame Scoresheets</div>
+    <h1>🎲 Spiel auswählen</h1>
+  </div>
   <div class="content">
-    <div class="sec-label">Spiel auswählen</div>
+    <div class="sec-label">Verfügbare Spiele</div>
     ${Object.values(GAMES).map(g => `
       <div class="game-card" onclick="selectGame('${g.id}')">
-        <div class="game-icon">${g.icon}</div>
+        <div class="game-icon" style="background:${g.iconBg}">${g.icon}</div>
         <div class="game-info">
           <h2>${g.name}</h2>
           <p>${g.desc}</p>
@@ -754,6 +926,9 @@ function selectGame(id) {
   state.players = [];
   state.scores  = {};
   state.useLandmarks = false;
+  state.rounds = [];
+  state.currentRound = [];
+  state.cardPicker = { open: false, pi: null, selected: [], bonusCards: [], x2: false };
   state.screen  = 'setup';
   render();
 }
@@ -790,7 +965,12 @@ function startScoring() {
   document.querySelectorAll('.p-input').forEach((el, i) => {
     state.players[i] = el.value.trim() || `Spieler ${i+1}`;
   });
-  initScores();
+  if (isRoundGame()) {
+    state.rounds = [];
+    state.currentRound = state.players.map(() => 0);
+  } else {
+    initScores();
+  }
   state.screen = 'scoring';
   render();
 }
@@ -820,6 +1000,311 @@ function resetScores() {
   initScores();
   state.screen = 'scoring';
   render();
+}
+
+// ─── Flip 7: round helpers ────────────────────────────────────────────────
+function playerRoundTotal(pi) {
+  return state.rounds.reduce((sum, r) => sum + (r[pi] || 0), 0);
+}
+
+function setRoundScore(pi, val) {
+  state.currentRound[pi] = Math.max(0, parseInt(val) || 0);
+  updateRoundBar();
+}
+
+function adjRound(pi, delta) {
+  state.currentRound[pi] = Math.max(0, (state.currentRound[pi] || 0) + delta);
+  const inp = document.getElementById(`rsc-${pi}`);
+  if (inp) inp.value = state.currentRound[pi];
+  updateRoundBar();
+  save();
+}
+
+function updateRoundBar() {
+  state.players.forEach((_, pi) => {
+    const el = document.getElementById(`rtot-${pi}`);
+    if (el) el.textContent = playerRoundTotal(pi) + (state.currentRound[pi] || 0);
+  });
+}
+
+function finalizeRound() {
+  state.rounds.push([...state.currentRound]);
+  state.currentRound = state.players.map(() => 0);
+  render();
+}
+
+const FLIP7_BONUS = 15;
+function hasFlip7() { return state.cardPicker.selected.length === 7; }
+
+function pickerTotal() {
+  const cp   = state.cardPicker;
+  const num  = cp.selected.reduce((s, v) => s + v, 0);
+  const bon  = cp.bonusCards.reduce((s, v) => s + v, 0);
+  const afterX2 = cp.x2 ? (num + bon) * 2 : (num + bon);
+  return afterX2 + (hasFlip7() ? FLIP7_BONUS : 0);
+}
+
+function openCardPicker(pi) {
+  state.cardPicker = { open: true, pi, selected: [], bonusCards: [], x2: false };
+  render();
+}
+
+function closeCardPicker() {
+  state.cardPicker.open = false;
+  render();
+}
+
+function toggleCard(val) {
+  const sel = state.cardPicker.selected;
+  const idx = sel.indexOf(val);
+  if (idx >= 0) sel.splice(idx, 1); else sel.push(val);
+  const btn = document.getElementById(`cb-${val}`);
+  if (btn) btn.className = `card-btn${sel.includes(val) ? ' sel' : ''}`;
+  updatePickerDisplay();
+}
+
+function toggleBonusCard(val) {
+  const bon = state.cardPicker.bonusCards;
+  const idx = bon.indexOf(val);
+  if (idx >= 0) bon.splice(idx, 1); else bon.push(val);
+  const btn = document.getElementById(`cbb-${val}`);
+  if (btn) btn.className = `card-btn bonus${bon.includes(val) ? ' sel' : ''}`;
+  updatePickerDisplay();
+}
+
+function toggleX2() {
+  state.cardPicker.x2 = !state.cardPicker.x2;
+  const btn = document.getElementById('cb-x2');
+  if (btn) btn.className = `card-btn x2${state.cardPicker.x2 ? ' sel' : ''}`;
+  updatePickerDisplay();
+}
+
+function updatePickerDisplay() {
+  const cp      = state.cardPicker;
+  const num     = cp.selected.reduce((s, v) => s + v, 0);
+  const bon     = cp.bonusCards.reduce((s, v) => s + v, 0);
+  const afterX2 = cp.x2 ? (num + bon) * 2 : (num + bon);
+  const flip    = hasFlip7() ? FLIP7_BONUS : 0;
+  const tot     = afterX2 + flip;
+
+  const totEl = document.getElementById('picker-total');
+  if (totEl) {
+    totEl.textContent = tot;
+    totEl.style.color = hasFlip7() ? '#b8860b' : '#1a3a5c';
+  }
+
+  // Flip 7 badge
+  const f7El = document.getElementById('flip7-badge');
+  if (f7El) {
+    f7El.style.display = hasFlip7() ? 'block' : 'none';
+  }
+
+  const chipsEl = document.getElementById('picker-chips');
+  if (chipsEl) {
+    const numChips  = [...cp.selected].sort((a,b)=>a-b)
+      .map(v => `<span class="sel-chip">${v}</span>`).join('');
+    const bonChips  = [...cp.bonusCards].sort((a,b)=>a-b)
+      .map(v => `<span class="sel-chip bonus">+${v}</span>`).join('');
+    const x2Chip   = cp.x2 ? `<span class="sel-chip x2">×2</span>` : '';
+    const flipChip = flip  ? `<span class="sel-chip x2">+${FLIP7_BONUS} Flip7</span>` : '';
+    const hasAny   = cp.selected.length || cp.bonusCards.length || cp.x2;
+    let formula;
+    if (cp.x2 && flip)      formula = `(${num+bon}) × 2 + ${FLIP7_BONUS} = <strong>${tot}</strong>`;
+    else if (cp.x2)         formula = `(${num+bon}) × 2 = <strong>${tot}</strong>`;
+    else if (flip)          formula = `${num+bon} + ${FLIP7_BONUS} = <strong>${tot}</strong>`;
+    else                    formula = `= <strong>${tot}</strong>`;
+    chipsEl.innerHTML = hasAny || flip
+      ? numChips + bonChips + x2Chip + flipChip + `<span style="margin-left:4px">${formula}</span>`
+      : '<span style="color:var(--muted)">Keine Karten ausgewählt</span>';
+  }
+
+  const cfmEl = document.getElementById('picker-confirm');
+  if (cfmEl) cfmEl.textContent = `Punkte übernehmen · ${tot} Pkt`;
+}
+
+function confirmCardPicker() {
+  const pi  = state.cardPicker.pi;
+  state.currentRound[pi] = pickerTotal();
+  state.cardPicker.open  = false;
+  render();
+}
+
+function renderCardPicker() {
+  const cp   = state.cardPicker;
+  const pi   = cp.pi;
+  const name = state.players[pi];
+  const tot      = pickerTotal();
+  const num      = cp.selected.reduce((s,v) => s+v, 0);
+  const bon      = cp.bonusCards.reduce((s,v) => s+v, 0);
+  const flip     = hasFlip7() ? FLIP7_BONUS : 0;
+  const numChips = [...cp.selected].sort((a,b)=>a-b)
+    .map(v=>`<span class="sel-chip">${v}</span>`).join('');
+  const bonChips = [...cp.bonusCards].sort((a,b)=>a-b)
+    .map(v=>`<span class="sel-chip bonus">+${v}</span>`).join('');
+  const x2Chip   = cp.x2  ? `<span class="sel-chip x2">×2</span>` : '';
+  const flipChip = flip    ? `<span class="sel-chip x2">+${FLIP7_BONUS} Flip7</span>` : '';
+  const hasAny   = cp.selected.length || cp.bonusCards.length || cp.x2 || flip;
+  let formula;
+  if (cp.x2 && flip)  formula = `(${num+bon}) × 2 + ${FLIP7_BONUS} = <strong>${tot}</strong>`;
+  else if (cp.x2)     formula = `(${num+bon}) × 2 = <strong>${tot}</strong>`;
+  else if (flip)      formula = `${num+bon} + ${FLIP7_BONUS} = <strong>${tot}</strong>`;
+  else                formula = `= <strong>${tot}</strong>`;
+  const chipsHtml = hasAny
+    ? numChips + bonChips + x2Chip + flipChip + `<span style="margin-left:4px">${formula}</span>`
+    : '<span style="color:var(--muted)">Keine Karten ausgewählt</span>';
+
+  return `
+  <div class="picker-overlay" onclick="closeCardPicker()">
+    <div class="picker-sheet" onclick="event.stopPropagation()">
+      <div class="picker-handle"></div>
+      <div class="picker-hdr">
+        <div class="picker-name" style="color:${COLORS[pi]}">${esc(name)}</div>
+        <div class="picker-total" id="picker-total" style="color:${cp.selected.length===7?'#b8860b':'#1a3a5c'}">${tot}</div>
+      </div>
+      <div id="flip7-badge" style="display:${cp.selected.length===7?'block':'none'};background:#fff3cd;border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;font-weight:700;color:#b8860b;text-align:center">
+        🎉 Flip 7! +${FLIP7_BONUS} Bonuspunkte
+      </div>
+
+      <div class="bonus-section-label">Zahlenkarten</div>
+      <div class="card-grid">
+        ${[0,1,2,3,4,5,6,7,8,9,10,11,12].map(v => `
+          <button class="card-btn${cp.selected.includes(v)?' sel':''}" id="cb-${v}" onclick="toggleCard(${v})">${v}</button>
+        `).join('')}
+      </div>
+
+      <div class="bonus-section-label">Bonuskarten</div>
+      <div class="card-grid">
+        ${[2,4,6,8,10].map(v => `
+          <button class="card-btn bonus${cp.bonusCards.includes(v)?' sel':''}" id="cbb-${v}" onclick="toggleBonusCard(${v})">+${v}</button>
+        `).join('')}
+        <button class="card-btn x2${cp.x2?' sel':''}" id="cb-x2" onclick="toggleX2()">× 2</button>
+      </div>
+
+      <div class="picker-selected" id="picker-chips">${chipsHtml}</div>
+
+      <button class="btn-primary" id="picker-confirm" onclick="confirmCardPicker()">
+        Punkte übernehmen · ${tot} Pkt
+      </button>
+      <button class="btn-secondary" style="margin-top:8px" onclick="closeCardPicker()">Abbrechen</button>
+    </div>
+  </div>`;
+}
+
+function restartRounds() {
+  state.rounds = [];
+  state.currentRound = state.players.map(() => 0);
+  state.screen = 'scoring';
+  render();
+}
+
+// ─── Flip 7: rendering ────────────────────────────────────────────────────
+function renderRoundScoring() {
+  const g = GAMES[state.game];
+  const roundNum = state.rounds.length + 1;
+  const totals = state.players.map((_, pi) => playerRoundTotal(pi));
+  const won = totals.some(t => t >= g.winScore);
+
+  return `
+  <div class="hdr">
+    <button class="btn-back" onclick="goSetup()">‹</button>
+    <h1>${g.icon} ${g.name} · Runde ${roundNum}</h1>
+  </div>
+  <div class="content">
+    ${state.rounds.length > 0 ? `
+      <div class="sec-label">Rundenübersicht</div>
+      <div class="round-table-wrap">
+        <table class="round-table">
+          <thead><tr>
+            <th></th>
+            ${state.players.map((name, pi) => `<th style="color:${COLORS[pi]}bb">${esc(name)}</th>`).join('')}
+          </tr></thead>
+          <tbody>
+            ${state.rounds.map((r, ri) => `
+              <tr>
+                <td>R${ri+1}</td>
+                ${state.players.map((_, pi) => `<td>${r[pi] || 0}</td>`).join('')}
+              </tr>
+            `).join('')}
+            <tr class="round-total-row">
+              <td>Σ</td>
+              ${totals.map(t => `<td class="${t >= g.winScore ? 'td-win' : ''}">${t}</td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    ` : ''}
+
+    <div class="score-section">
+      <div class="sec-hdr flip7">Runde ${roundNum} · Spieler antippen</div>
+      <div class="player-pick-grid">
+        ${state.players.map((name, pi) => `
+          <div class="player-pick-card" onclick="openCardPicker(${pi})"
+               style="border-color:${(state.currentRound[pi]||0) > 0 ? COLORS[pi]+'55' : 'transparent'}">
+            <div class="ppc-name" style="color:${COLORS[pi]}">${esc(name)}</div>
+            <div class="ppc-score" id="ppc-${pi}">${state.currentRound[pi] || 0}</div>
+            <div class="ppc-hint">✎ antippen</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ${state.cardPicker.open ? renderCardPicker() : ''}
+
+    ${won ? `
+      <button class="btn-primary" style="background:#b8860b" onclick="showResults()">
+        Spiel beenden & Ergebnis 🏆
+      </button>
+    ` : ''}
+    <button class="btn-primary${won ? '" style="background:#666;margin-top:8px' : ''}" onclick="finalizeRound()">
+      Runde abschließen →
+    </button>
+  </div>
+  <div class="total-bar" style="background:#1a3a5c">
+    ${state.players.map((name, pi) => `
+      <div class="total-player">
+        <div class="total-name">${esc(name)}</div>
+        <div class="total-pts" id="rtot-${pi}">${totals[pi] + (state.currentRound[pi] || 0)}</div>
+        <div class="total-lbl">${totals[pi] >= g.winScore ? '🏆 Gewonnen!' : 'Punkte'}</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderRoundResults() {
+  const g = GAMES[state.game];
+  const data = state.players
+    .map((name, pi) => ({ name, pi, total: playerRoundTotal(pi) }))
+    .sort((a, b) => b.total - a.total);
+
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'];
+  let rank = 1;
+  const ranked = data.map((r, i) => {
+    if (i > 0 && r.total < data[i-1].total) rank = i + 1;
+    return { ...r, rank };
+  });
+  const max  = ranked[0].total;
+  const tied = ranked.length > 1 && ranked[0].total === ranked[1].total;
+
+  return `
+  <div class="hdr">
+    <button class="btn-back" onclick="state.screen='scoring';render()">‹</button>
+    <h1>🏆 Ergebnis</h1>
+  </div>
+  <div class="content">
+    <div class="sec-label" style="text-align:center">${g.icon} ${g.name} · ${state.rounds.length} Runden</div>
+    ${ranked.map((r, i) => `
+      <div class="result-card${i===0?' winner':''}">
+        <div class="result-rank">${medals[r.rank-1] || r.rank+'.'}</div>
+        <div>
+          <div class="result-name" style="color:${COLORS[r.pi]}">${esc(r.name)}</div>
+          <div class="result-diff">${r.rank===1 ? '🎉 Gewinner!' : `${max - r.total} Punkte zurück`}</div>
+        </div>
+        <div class="result-score" style="color:#1a3a5c">${r.total}</div>
+      </div>
+    `).join('')}
+    ${tied ? `<div class="hint-box">🤝 <strong>Gleichstand!</strong></div>` : ''}
+    <button class="btn-primary" style="margin-top:16px" onclick="goHome()">Neues Spiel</button>
+    <button class="btn-secondary" onclick="restartRounds()">Neue Partie (gleiche Spieler)</button>
+  </div>`;
 }
 
 function esc(s) {
