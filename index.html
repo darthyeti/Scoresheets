@@ -72,6 +72,31 @@ body {
   flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
+.btn-undo {
+  background: rgba(255,255,255,.2);
+  border: none; color: #fff;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  font-size: 19px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-undo:disabled { opacity: .25; cursor: default; }
+.btn-clear {
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.3);
+  color: #fff;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  font-size: 17px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-clear:active { background: rgba(255,80,60,.5); }
 
 /* ── Content ── */
 .content {
@@ -499,24 +524,19 @@ input[type=number] { -moz-appearance: textfield; }
 .subtotal-row {
   background: var(--green-bg);
   border-top: 1px solid #b7e4c7;
-  padding: 8px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  padding: 6px 14px 8px;
 }
 .subtotal-label {
-  font-size: 12px; font-weight: 700;
+  font-size: 11px; font-weight: 700;
   color: var(--green);
-  white-space: nowrap;
-}
-.subtotal-vals {
-  display: flex; gap: 8px; flex: 1; overflow-x: auto;
+  margin-bottom: 4px;
+  text-transform: uppercase; letter-spacing: .4px;
 }
 .subtotal-val {
-  flex: 1; min-width: 82px;
   text-align: center;
   font-size: 17px; font-weight: 800;
   color: var(--green);
+  padding: 2px 0;
 }
 </style>
 </head>
@@ -533,7 +553,8 @@ const state = {
   useArtSolo: false,
   rounds: [],
   currentRound: [],
-  cardPicker: { open: false, pi: null, selected: [], bonusCards: [], x2: false }
+  cardPicker: { open: false, pi: null, selected: [], bonusCards: [], x2: false },
+  history: []
 };
 
 // ─── Game definitions ─────────────────────────────────────────────────────
@@ -615,8 +636,8 @@ const GAMES = {
 
   everdell: {
     id: 'everdell', name: 'Everdell Duo', icon: '🐿️', iconBg: '#fef3c7',
-    desc: 'Stadtbau mit Karten und Arbeitern (1–4 Spieler)',
-    min: 1, max: 4,
+    desc: 'Stadtbau mit Karten und Arbeitern (1–2 Spieler)',
+    min: 1, max: 2, wideInputs: true,
     sections: [
       {
         id: 'main', label: 'Punkte', type: 'input',
@@ -673,6 +694,10 @@ function activeSections() {
   return [...g.sections, ...extras];
 }
 
+function numWrapStyle() {
+  return GAMES[state.game]?.wideInputs ? 'style="flex:1;min-width:100px"' : '';
+}
+
 function catScore(pi, cat) {
   return getScore(pi, cat.id) * (cat.factor || 1);
 }
@@ -688,6 +713,25 @@ function initScores() {
 
 function getScore(pi, id)    { return state.scores[`${pi}_${id}`] ?? 0; }
 function rawSet(pi, id, v)   { state.scores[`${pi}_${id}`] = Math.max(0, parseInt(v) || 0); }
+
+function pushHistory() {
+  state.history.push({
+    scores: { ...state.scores },
+    rounds: state.rounds.map(r => [...r]),
+    currentRound: [...state.currentRound]
+  });
+  if (state.history.length > 50) state.history.shift();
+}
+
+function undo() {
+  if (!state.history.length) return;
+  const prev = state.history.pop();
+  state.scores = prev.scores;
+  state.rounds = prev.rounds;
+  state.currentRound = prev.currentRound;
+  render();
+  save();
+}
 
 function habitatBonuses(catId) {
   const sizes  = state.players.map((_, pi) => getScore(pi, catId));
@@ -790,7 +834,20 @@ function render() {
   else if (state.screen === 'results') fn = isRoundGame() ? renderRoundResults : renderResults;
   else                                 fn = renderHome;
   document.getElementById('app').innerHTML = fn();
+  bindSectionScrollSync();
   save();
+}
+
+function bindSectionScrollSync() {
+  document.querySelectorAll('.score-section').forEach(sec => {
+    const rows = [...sec.querySelectorAll('.inputs-row')];
+    if (rows.length < 2) return;
+    rows.forEach(el => {
+      el.addEventListener('scroll', () => {
+        rows.forEach(other => { if (other !== el) other.scrollLeft = el.scrollLeft; });
+      }, { passive: true });
+    });
+  });
 }
 
 function renderHome() {
@@ -880,6 +937,8 @@ function renderScoring() {
   <div class="hdr">
     <button class="btn-back" onclick="goSetup()">‹</button>
     <h1>${g.icon} ${g.name}${suffix}</h1>
+    <button class="btn-clear" onclick="clearScores()" title="Alle zurücksetzen">✕</button>
+    <button class="btn-undo" onclick="undo()" ${state.history.length ? '' : 'disabled'} title="Rückgängig">↩</button>
   </div>
   <div class="content">
     ${activeSections().map(sec => renderSection(sec)).join('')}
@@ -911,9 +970,11 @@ function renderSection(sec) {
     ${sec.subtotal ? `
       <div class="subtotal-row">
         <div class="subtotal-label">${sec.subtotal}</div>
-        <div class="subtotal-vals">
+        <div class="inputs-row">
           ${state.players.map((_, pi) => `
-            <div class="subtotal-val" id="sub-${sec.id}-${pi}">${sectionSubtotal(sec, pi)}</div>
+            <div class="num-wrap" ${numWrapStyle()}>
+              <div class="subtotal-val" id="sub-${sec.id}-${pi}">${sectionSubtotal(sec, pi)}</div>
+            </div>
           `).join('')}
         </div>
       </div>
@@ -928,7 +989,7 @@ function renderInputRow(cat) {
     <div class="row-desc">${cat.desc}</div>
     <div class="inputs-row">
       ${state.players.map((name, pi) => `
-        <div class="num-wrap">
+        <div class="num-wrap" ${numWrapStyle()}>
           <div class="num-pname" style="color:${COLORS[pi]}">${esc(name)}</div>
           <div class="num-ctrl">
             <button class="nbtn" onclick="adj(${pi},'${cat.id}',-1,false)">−</button>
@@ -952,7 +1013,7 @@ function renderOptionsRow(cat) {
     <div class="row-desc">${cat.desc}</div>
     <div class="inputs-row">
       ${state.players.map((name, pi) => `
-        <div class="num-wrap">
+        <div class="num-wrap" ${numWrapStyle()}>
           <div class="num-pname" style="color:${COLORS[pi]}">${esc(name)}</div>
           <div class="opt-btns">
             ${cat.options.map(v => `
@@ -968,6 +1029,7 @@ function renderOptionsRow(cat) {
 }
 
 function setOption(pi, catId, val) {
+  pushHistory();
   rawSet(pi, catId, val);
   const cat = activeSections().flatMap(s => s.cats).find(c => c.id === catId);
   if (cat) cat.options.forEach(v => {
@@ -990,7 +1052,7 @@ function renderHabitatRow(cat) {
     <div class="row-desc">${cat.desc} · ${hint}</div>
     <div class="inputs-row">
       ${state.players.map((name, pi) => `
-        <div class="num-wrap">
+        <div class="num-wrap" ${numWrapStyle()}>
           <div class="num-pname" style="color:${COLORS[pi]}">${esc(name)}</div>
           <div class="num-ctrl">
             <button class="nbtn" onclick="adj(${pi},'${cat.id}',-1,true)">−</button>
@@ -1046,6 +1108,18 @@ function renderResults() {
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────
+function clearScores() {
+  pushHistory();
+  if (isRoundGame()) {
+    state.rounds = [];
+    state.currentRound = state.players.map(() => 0);
+  } else {
+    initScores();
+  }
+  render();
+  save();
+}
+
 function toggleLandmarks() {
   state.useLandmarks = !state.useLandmarks;
   render();
@@ -1063,6 +1137,7 @@ function selectGame(id) {
   state.useLandmarks = false;
   state.useArtSolo = false;
   state.rounds = [];
+  state.history = [];
   state.currentRound = [];
   state.cardPicker = { open: false, pi: null, selected: [], bonusCards: [], x2: false };
   state.screen  = 'setup';
@@ -1119,6 +1194,7 @@ function onScoreInput(pi, catId, val, isHabitat) {
 }
 
 function adj(pi, catId, delta, isHabitat) {
+  pushHistory();
   rawSet(pi, catId, getScore(pi, catId) + delta);
   const inp = document.getElementById(`sc-${pi}-${catId}`);
   if (inp) inp.value = getScore(pi, catId);
@@ -1164,6 +1240,7 @@ function updateRoundBar() {
 }
 
 function finalizeRound() {
+  pushHistory();
   state.rounds.push([...state.currentRound]);
   state.currentRound = state.players.map(() => 0);
   render();
@@ -1259,6 +1336,7 @@ function updatePickerDisplay() {
 }
 
 function confirmCardPicker() {
+  pushHistory();
   const pi  = state.cardPicker.pi;
   state.currentRound[pi] = pickerTotal();
   state.cardPicker.open  = false;
@@ -1344,6 +1422,8 @@ function renderRoundScoring() {
   <div class="hdr">
     <button class="btn-back" onclick="goSetup()">‹</button>
     <h1>${g.icon} ${g.name} · Runde ${roundNum}</h1>
+    <button class="btn-clear" onclick="clearScores()" title="Alle zurücksetzen">✕</button>
+    <button class="btn-undo" onclick="undo()" ${state.history.length ? '' : 'disabled'} title="Rückgängig">↩</button>
   </div>
   <div class="content">
     ${state.rounds.length > 0 ? `
