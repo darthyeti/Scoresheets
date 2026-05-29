@@ -330,6 +330,32 @@ input[type=number] { -moz-appearance: textfield; }
 /* ── Landmarks section header (distinct colour) ── */
 .sec-hdr.landmarks { background: #6b4f2a; }
 
+/* ── Artengarten solo section ── */
+.sec-hdr.solo { background: #4a4e69; }
+
+/* ── Option picker (0 / 5 / 10) ── */
+.opt-btns { display: flex; gap: 6px; width: 100%; }
+.opt-btn {
+  flex: 1; padding: 10px 4px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #f4f2ec;
+  font-size: 17px; font-weight: 700;
+  cursor: pointer; color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+.opt-btn.sel { background: var(--green); border-color: var(--green); color: #fff; }
+.opt-btn:active { opacity: .75; }
+
+/* ── Factor badge (e.g. ×2 Marker) ── */
+.factor-badge {
+  font-size: 11px; font-weight: 700;
+  color: var(--green); background: var(--green-bg);
+  border-radius: 8px; padding: 2px 8px;
+  margin-top: 3px; text-align: center; white-space: nowrap;
+}
+
 /* ── Flip 7 round table ── */
 .round-table-wrap {
   background: var(--surface);
@@ -503,6 +529,7 @@ const state = {
   players: [],
   scores:  {},
   useLandmarks: false,
+  useArtSolo: false,
   rounds: [],
   currentRound: [],
   cardPicker: { open: false, pi: null, selected: [], bonusCards: [], x2: false }
@@ -553,6 +580,38 @@ const GAMES = {
     gameType: 'rounds', winScore: 200,
   },
 
+  artengarten: {
+    id: 'artengarten', name: 'Artengarten', icon: '🌿', iconBg: '#dcfce7',
+    desc: 'Zoo-Aufbau mit Tieren & Artenschutz (1–4 Spieler)',
+    min: 1, max: 4,
+    sections: [
+      {
+        id: 'ag_zoo', label: '🦁 Karten im Zoo', type: 'input',
+        subtotal: 'Σ · Karten gesamt',
+        cats: [
+          { id: 'ag_tiere',      label: '🐾 Tiere',       desc: 'Punkte aus Tierkarten (gelbe Symbole)' },
+          { id: 'ag_gebaeude',   label: '🏗️ Gebäude',     desc: 'Punkte aus Gebäudekarten (blaue Symbole)' },
+          { id: 'ag_projekte',   label: '🔬 Projekte',     desc: 'Punkte aus Projektkarten (lila Symbole)' },
+          { id: 'ag_freiflaeche',label: '⬜ Freiflächen',  desc: 'Punkte aus Freiflächen-Karten' },
+        ]
+      },
+      {
+        id: 'ag_schutz', label: '🛡️ Artenschutz', type: 'input',
+        cats: [
+          { id: 'ag_tableau', label: '🛡️ Artenschutztableau', desc: 'Punkte aus dem Tableau inkl. unterstützter Erfolge' },
+        ]
+      },
+      {
+        id: 'ag_marker', label: '🎒 Marker', type: 'input',
+        cats: [
+          { id: 'ag_beutel', label: '🎒 Beutelmarker', desc: 'Anzahl Beutelmarker eingeben · je 2 Punkte', factor: 2 },
+          { id: 'ag_vorrat', label: '📦 Übrige Marker im Vorrat', desc: 'Anzahl noch übrige Marker eingeben · je 2 Punkte', factor: 2 },
+          { id: 'ag_spielende', label: '🏁 Spielende-Marker', desc: '10 Pkt (1. Auslöser) · 5 Pkt (2. Auslöser) · 0 wenn keiner', options: [0, 5, 10] },
+        ]
+      }
+    ]
+  },
+
   everdell: {
     id: 'everdell', name: 'Everdell Duo', icon: '🐿️', iconBg: '#fef3c7',
     desc: 'Stadtbau mit Karten und Arbeitern (1–4 Spieler)',
@@ -574,6 +633,14 @@ const GAMES = {
 
 const COLORS = ['#2d6a4f', '#c1121f', '#e07c24', '#1d4e89', '#6a3d9a'];
 const EMOJIS = ['🟢', '🔴', '🟠', '🔵', '🟣'];
+
+// ─── Artengarten: Solo section ────────────────────────────────────────────
+const ARTENGARTEN_SOLO_SECTION = {
+  id: 'ag_solo', label: '👁️ Solomodus', type: 'input', isSolo: true,
+  cats: [
+    { id: 'ag_solomarker', label: '👁️ Verdeckte Solomarker', desc: 'Anzahl noch verdeckter Solomarker eingeben · je 5 Punkte', factor: 5 },
+  ]
+};
 
 // ─── Cascadia: Landmarks expansion ───────────────────────────────────────
 // Die Erweiterung enthält 5 Landmarken-Plättchen (je 2-seitig A/B).
@@ -599,8 +666,14 @@ function load() {
 // ─── Score logic ──────────────────────────────────────────────────────────
 function activeSections() {
   const g = GAMES[state.game];
-  const extras = (state.game === 'cascadia' && state.useLandmarks) ? [LANDMARK_SECTION] : [];
+  const extras = [];
+  if (state.game === 'cascadia' && state.useLandmarks) extras.push(LANDMARK_SECTION);
+  if (state.game === 'artengarten' && state.useArtSolo) extras.push(ARTENGARTEN_SOLO_SECTION);
   return [...g.sections, ...extras];
+}
+
+function catScore(pi, cat) {
+  return getScore(pi, cat.id) * (cat.factor || 1);
 }
 
 function initScores() {
@@ -650,7 +723,7 @@ function habitatBonuses(catId) {
 
 function sectionSubtotal(sec, pi) {
   return sec.cats.reduce((sum, cat) => {
-    return sum + (sec.type === 'habitat' ? habitatBonuses(cat.id)[pi] : getScore(pi, cat.id));
+    return sum + (sec.type === 'habitat' ? habitatBonuses(cat.id)[pi] : catScore(pi, cat));
   }, 0);
 }
 
@@ -660,7 +733,7 @@ function playerTotal(pi) {
     sec.cats.forEach(cat => {
       t += sec.type === 'habitat'
         ? habitatBonuses(cat.id)[pi]
-        : getScore(pi, cat.id);
+        : catScore(pi, cat);
     });
   });
   return t;
@@ -676,6 +749,12 @@ function updateTotals() {
         const sub = document.getElementById(`sub-${sec.id}-${pi}`);
         if (sub) sub.textContent = sectionSubtotal(sec, pi);
       }
+      sec.cats.forEach(cat => {
+        if (cat.factor) {
+          const fv = document.getElementById(`fv-${pi}-${cat.id}`);
+          if (fv) fv.textContent = `= ${catScore(pi, cat)} Pkt`;
+        }
+      });
     });
   });
 }
@@ -774,6 +853,19 @@ function renderSetup() {
         </label>
       </div>
     ` : ''}
+    ${state.game === 'artengarten' ? `
+      <div class="sec-label">Spielmodus</div>
+      <div class="toggle-row" onclick="toggleArtSolo()">
+        <div class="toggle-label">
+          <strong>👁️ Solomodus</strong>
+          <span>Fügt Zeile für verdeckte Solomarker hinzu (× 5 Punkte)</span>
+        </div>
+        <label class="toggle" onclick="event.stopPropagation()">
+          <input type="checkbox" ${state.useArtSolo ? 'checked' : ''} onchange="toggleArtSolo()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+    ` : ''}
     <button class="btn-primary" ${ok ? '' : 'disabled'} onclick="startScoring()">
       Punktzählung starten →
     </button>
@@ -806,11 +898,14 @@ function renderScoring() {
 }
 
 function renderSection(sec) {
+  const hdrClass = sec.isLandmarks ? ' landmarks' : sec.isSolo ? ' solo' : '';
   return `
   <div class="score-section">
-    <div class="sec-hdr${sec.isLandmarks ? ' landmarks' : ''}">${sec.label}</div>
+    <div class="sec-hdr${hdrClass}">${sec.label}</div>
     ${sec.cats.map(cat =>
-      sec.type === 'habitat' ? renderHabitatRow(cat) : renderInputRow(cat)
+      sec.type === 'habitat' ? renderHabitatRow(cat)
+      : cat.options ? renderOptionsRow(cat)
+      : renderInputRow(cat)
     ).join('')}
     ${sec.subtotal ? `
       <div class="subtotal-row">
@@ -842,10 +937,44 @@ function renderInputRow(cat) {
               oninput="onScoreInput(${pi},'${cat.id}',this.value,false)">
             <button class="nbtn" onclick="adj(${pi},'${cat.id}',1,false)">+</button>
           </div>
+          ${cat.factor ? `<div class="factor-badge" id="fv-${pi}-${cat.id}">= ${catScore(pi, cat)} Pkt</div>` : ''}
         </div>
       `).join('')}
     </div>
   </div>`;
+}
+
+function renderOptionsRow(cat) {
+  return `
+  <div class="score-row">
+    <div class="row-label">${cat.label}</div>
+    <div class="row-desc">${cat.desc}</div>
+    <div class="inputs-row">
+      ${state.players.map((name, pi) => `
+        <div class="num-wrap">
+          <div class="num-pname" style="color:${COLORS[pi]}">${esc(name)}</div>
+          <div class="opt-btns">
+            ${cat.options.map(v => `
+              <button class="opt-btn${getScore(pi, cat.id) === v ? ' sel' : ''}"
+                id="opt-${pi}-${cat.id}-${v}"
+                onclick="setOption(${pi},'${cat.id}',${v})">${v}</button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function setOption(pi, catId, val) {
+  rawSet(pi, catId, val);
+  const cat = activeSections().flatMap(s => s.cats).find(c => c.id === catId);
+  if (cat) cat.options.forEach(v => {
+    const btn = document.getElementById(`opt-${pi}-${catId}-${v}`);
+    if (btn) btn.className = `opt-btn${getScore(pi, catId) === v ? ' sel' : ''}`;
+  });
+  updateTotals();
+  save();
 }
 
 function renderHabitatRow(cat) {
@@ -921,11 +1050,17 @@ function toggleLandmarks() {
   render();
 }
 
+function toggleArtSolo() {
+  state.useArtSolo = !state.useArtSolo;
+  render();
+}
+
 function selectGame(id) {
   state.game = id;
   state.players = [];
   state.scores  = {};
   state.useLandmarks = false;
+  state.useArtSolo = false;
   state.rounds = [];
   state.currentRound = [];
   state.cardPicker = { open: false, pi: null, selected: [], bonusCards: [], x2: false };
