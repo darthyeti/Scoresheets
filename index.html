@@ -520,6 +520,105 @@ input[type=number] { -moz-appearance: textfield; }
   margin: 10px 0 6px;
 }
 
+/* ── Cabo ── */
+.sec-hdr.cabo { background: #a15c07; }
+.cabo-tbl th { background: #a15c07; }
+.cabo-tbl .round-total-row td {
+  background: #fdf0dd; color: #7c4a06;
+  border-top: 2px solid #a15c07;
+}
+.cabo-tbl .round-total-row td:first-child { color: #7c4a06; }
+.cabo-tbl .td-zero { color: #2d6a4f; font-weight: 800; }
+.cabo-tbl .td-caller::after { content: ' 📣'; font-size: 10px; }
+.cabo-tbl .td-low { color: #b8860b !important; }
+.cabo-tbl .td-low::after { content: ' 🏆'; font-size: 11px; }
+.cabo-tbl .td-out { color: #c1121f !important; }
+
+.cabo-hand {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  justify-content: center; margin-bottom: 7px; min-height: 20px;
+}
+.cabo-card-chip {
+  background: #a15c07; color: #fff;
+  border-radius: 6px; padding: 1px 7px;
+  font-size: 12px; font-weight: 700;
+}
+.cabo-card-chip.empty { background: #f0ece4; color: #b3aa9a; }
+.cabo-card-chip.manual { background: #4a4e69; }
+.ppc-score.cabo { color: #a15c07; }
+.ppc-sum { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.ppc-pts {
+  font-size: 11px; font-weight: 700;
+  color: var(--green); background: var(--green-bg);
+  border-radius: 8px; padding: 2px 8px;
+  display: inline-block; margin-top: 5px;
+}
+.ppc-pts.high { background: #fdeaea; color: #c1121f; }
+
+.caller-btns { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 14px; }
+.caller-btn {
+  flex: 1 1 calc(33.333% - 4px);
+  padding: 11px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #f4f2ec;
+  font-size: 13px; font-weight: 700; font-family: inherit;
+  color: var(--text); cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent;
+}
+.caller-btn.sel { background: #a15c07; border-color: #a15c07; color: #fff; }
+.caller-btn:active { opacity: .75; }
+
+.card-btn { position: relative; }
+.card-btn.cabo.sel {
+  background: #a15c07; border-color: #a15c07; color: #fff;
+  box-shadow: 0 3px 8px rgba(161,92,7,.35);
+}
+.card-cnt {
+  position: absolute; top: -7px; right: -7px;
+  min-width: 21px; height: 21px; border-radius: 11px;
+  background: #c1121f; color: #fff;
+  font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.picker-total.cabo { color: #a15c07; }
+.sel-chip.cabo { background: #a15c07; cursor: pointer; }
+.picker-hint { font-size: 11px; color: var(--muted); margin: -6px 0 10px; }
+
+.manual-row {
+  display: flex; align-items: center; gap: 10px;
+  background: #f6f4ee; border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 12px;
+}
+.manual-row label { font-size: 12px; color: var(--muted); flex: 1; line-height: 1.35; }
+.manual-row input {
+  width: 88px; text-align: center;
+  font-size: 19px; font-weight: 700;
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 7px 4px; font-family: inherit;
+  background: #fff; color: var(--text);
+  -webkit-appearance: none;
+}
+.kami-banner {
+  background: #fdeaea; border-radius: 10px;
+  padding: 9px 14px; margin-bottom: 10px;
+  font-size: 14px; font-weight: 700; color: #c1121f; text-align: center;
+}
+.rule-note {
+  font-size: 12px; color: var(--muted);
+  line-height: 1.5; padding: 0 14px 13px;
+}
+.btn-ghost {
+  background: none; border: none;
+  color: var(--muted); font-size: 13px; font-family: inherit;
+  text-decoration: underline; cursor: pointer;
+  padding: 4px 0; margin-bottom: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ── Subtotal row (T / G) ── */
 .subtotal-row {
   background: var(--green-bg);
@@ -554,6 +653,9 @@ const state = {
   rounds: [],
   currentRound: [],
   cardPicker: { open: false, pi: null, selected: [], bonusCards: [], x2: false },
+  caboRound:  { hands: {}, manual: {}, caller: null },
+  caboPicker: { open: false, pi: null, cards: [], manual: null },
+  caboRules:  { penalty: 5, kamikaze: true, exact100: true, target: 100 },
   history: []
 };
 
@@ -650,11 +752,19 @@ const GAMES = {
         ]
       }
     ]
+  },
+
+  cabo: {
+    id: 'cabo', name: 'Cabo', icon: '🌴', iconBg: '#fde8c8',
+    desc: 'Merk-Kartenspiel · die wenigsten Punkte gewinnen (2–8 Spieler)',
+    min: 2, max: 8,
+    gameType: 'cabo', lowWins: true
   }
 };
 
-const COLORS = ['#2d6a4f', '#c1121f', '#e07c24', '#1d4e89', '#6a3d9a'];
-const EMOJIS = ['🟢', '🔴', '🟠', '🔵', '🟣'];
+const COLORS = ['#2d6a4f', '#c1121f', '#e07c24', '#1d4e89', '#6a3d9a',
+                '#0f766e', '#b8860b', '#be185d'];
+const EMOJIS = ['🟢', '🔴', '🟠', '🔵', '🟣', '🟦', '🟡', '🟤'];
 
 // ─── Artengarten: Solo section ────────────────────────────────────────────
 const ARTENGARTEN_SOLO_SECTION = {
@@ -717,8 +827,9 @@ function rawSet(pi, id, v)   { state.scores[`${pi}_${id}`] = Math.max(0, parseIn
 function pushHistory() {
   state.history.push({
     scores: { ...state.scores },
-    rounds: state.rounds.map(r => [...r]),
-    currentRound: [...state.currentRound]
+    rounds: JSON.parse(JSON.stringify(state.rounds)),
+    currentRound: [...state.currentRound],
+    caboRound: JSON.parse(JSON.stringify(state.caboRound))
   });
   if (state.history.length > 50) state.history.shift();
 }
@@ -729,6 +840,7 @@ function undo() {
   state.scores = prev.scores;
   state.rounds = prev.rounds;
   state.currentRound = prev.currentRound;
+  if (prev.caboRound) state.caboRound = prev.caboRound;
   render();
   save();
 }
@@ -830,8 +942,10 @@ function render() {
   let fn;
   if      (state.screen === 'home')    fn = renderHome;
   else if (state.screen === 'setup')   fn = renderSetup;
-  else if (state.screen === 'scoring') fn = isRoundGame() ? renderRoundScoring : renderScoring;
-  else if (state.screen === 'results') fn = isRoundGame() ? renderRoundResults : renderResults;
+  else if (state.screen === 'scoring') fn = isCaboGame() ? renderCaboScoring
+                                          : isRoundGame() ? renderRoundScoring : renderScoring;
+  else if (state.screen === 'results') fn = isCaboGame() ? renderCaboResults
+                                          : isRoundGame() ? renderRoundResults : renderResults;
   else                                 fn = renderHome;
   document.getElementById('app').innerHTML = fn();
   bindSectionScrollSync();
@@ -920,6 +1034,51 @@ function renderSetup() {
         </div>
         <label class="toggle" onclick="event.stopPropagation()">
           <input type="checkbox" ${state.useArtSolo ? 'checked' : ''} onchange="toggleArtSolo()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+    ` : ''}
+    ${state.game === 'cabo' ? `
+      <div class="sec-label">Hausregeln</div>
+      <div class="score-section">
+        <div class="sec-hdr cabo">Strafpunkte für falsches Cabo</div>
+        <div class="score-row">
+          <div class="row-desc">Aufschlag auf die eigene Summe, wenn der Ansager nicht vorn liegt. Original: 5 Punkte.</div>
+          <div class="opt-btns">
+            ${[5, 10].map(v => `
+              <button class="opt-btn${state.caboRules.penalty === v ? ' sel' : ''}"
+                onclick="setCaboRule('penalty',${v})">+${v}</button>
+            `).join('')}
+          </div>
+        </div>
+        <div class="score-row">
+          <div class="row-label">🏁 Spielende bei</div>
+          <div class="row-desc">Sobald jemand diesen Wert überschreitet, endet das Spiel.</div>
+          <div class="opt-btns">
+            ${[50, 100, 200].map(v => `
+              <button class="opt-btn${state.caboRules.target === v ? ' sel' : ''}"
+                onclick="setCaboRule('target',${v})">${v}</button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row" onclick="toggleCaboRule('kamikaze')">
+        <div class="toggle-label">
+          <strong>💥 Kamikaze-Regel</strong>
+          <span>12+12+13+13 ergibt 0 Punkte, alle anderen bekommen 50</span>
+        </div>
+        <label class="toggle" onclick="event.stopPropagation()">
+          <input type="checkbox" ${state.caboRules.kamikaze ? 'checked' : ''} onchange="toggleCaboRule('kamikaze')">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+      <div class="toggle-row" onclick="toggleCaboRule('exact100')">
+        <div class="toggle-label">
+          <strong>🎯 Punktlandung</strong>
+          <span>Wer genau ${state.caboRules.target} Punkte erreicht, wird auf ${Math.round(state.caboRules.target / 2)} halbiert</span>
+        </div>
+        <label class="toggle" onclick="event.stopPropagation()">
+          <input type="checkbox" ${state.caboRules.exact100 ? 'checked' : ''} onchange="toggleCaboRule('exact100')">
           <div class="toggle-track"></div>
         </label>
       </div>
@@ -1110,7 +1269,10 @@ function renderResults() {
 // ─── Actions ──────────────────────────────────────────────────────────────
 function clearScores() {
   pushHistory();
-  if (isRoundGame()) {
+  if (isCaboGame()) {
+    state.rounds = [];
+    resetCaboRound();
+  } else if (isRoundGame()) {
     state.rounds = [];
     state.currentRound = state.players.map(() => 0);
   } else {
@@ -1140,6 +1302,9 @@ function selectGame(id) {
   state.history = [];
   state.currentRound = [];
   state.cardPicker = { open: false, pi: null, selected: [], bonusCards: [], x2: false };
+  state.caboPicker = { open: false, pi: null, cards: [], manual: null };
+  state.caboRules  = { penalty: 5, kamikaze: true, exact100: true, target: 100 };
+  resetCaboRound();
   state.screen  = 'setup';
   render();
 }
@@ -1176,7 +1341,10 @@ function startScoring() {
   document.querySelectorAll('.p-input').forEach((el, i) => {
     state.players[i] = el.value.trim() || `Spieler ${i+1}`;
   });
-  if (isRoundGame()) {
+  if (isCaboGame()) {
+    state.rounds = [];
+    resetCaboRound();
+  } else if (isRoundGame()) {
     state.rounds = [];
     state.currentRound = state.players.map(() => 0);
   } else {
@@ -1520,6 +1688,402 @@ function renderRoundResults() {
     ${tied ? `<div class="hint-box">🤝 <strong>Gleichstand!</strong></div>` : ''}
     <button class="btn-primary" style="margin-top:16px" onclick="goHome()">Neues Spiel</button>
     <button class="btn-secondary" onclick="restartRounds()">Neue Partie (gleiche Spieler)</button>
+  </div>`;
+}
+
+// ═══ Cabo ═════════════════════════════════════════════════════════════════
+// Regeln nach Melissa Limes (Smiling Monster Games, dt. Ausgabe):
+// - Wer die wenigste Kartensumme hat, verbucht 0 Punkte, alle anderen ihre Summe.
+// - Der Cabo-Ansager bekommt bei falscher Ansage seine Summe + Strafpunkte.
+// - Bei Gleichstand gewinnt der Cabo-Ansager.
+// - Kamikaze (12+12+13+13): dieser Spieler 0, alle anderen 50 Punkte.
+// - Genau 100 Punkte werden auf 50 halbiert, über 100 endet das Spiel.
+// - Bei Gleichstand am Ende gewinnt, wer öfter Cabo angesagt hat.
+
+function isCaboGame() { return state.game && GAMES[state.game].gameType === 'cabo'; }
+
+function caboHand(pi) { return state.caboRound.hands[pi] || []; }
+
+function caboManual(pi) {
+  const m = state.caboRound.manual[pi];
+  return (m === null || m === undefined) ? null : m;
+}
+
+function caboSum(pi) {
+  const m = caboManual(pi);
+  if (m !== null) return m;
+  return caboHand(pi).reduce((a, b) => a + b, 0);
+}
+
+function caboHasEntry(pi) { return caboManual(pi) !== null || caboHand(pi).length > 0; }
+
+function isKamikazeHand(h) {
+  return [...h].sort((a, b) => a - b).join(',') === '12,12,13,13';
+}
+
+function caboKamikazeIndex(hands) {
+  if (!state.caboRules.kamikaze) return -1;
+  return hands.findIndex(h => isKamikazeHand(h || []));
+}
+
+// Rundenpunkte aller Spieler. caller: Spielerindex, -1 = niemand, null = offen.
+function caboRoundPoints(sums, hands, caller) {
+  const idx  = state.players.map((_, i) => i);
+  const kami = caboKamikazeIndex(hands);
+  if (kami >= 0) return idx.map(pi => pi === kami ? 0 : 50);
+
+  const min = Math.min(...sums);
+  const callerIsLowest = (caller >= 0) && sums[caller] === min;
+
+  return idx.map(pi => {
+    if (pi === caller) return callerIsLowest ? 0 : sums[pi] + state.caboRules.penalty;
+    // Gleichstand mit dem Ansager: der Ansager gewinnt, dieser Spieler zahlt seine Summe
+    if (sums[pi] === min && !callerIsLowest) return 0;
+    return sums[pi];
+  });
+}
+
+function currentCaboSums()  { return state.players.map((_, pi) => caboSum(pi)); }
+function currentCaboHands() { return state.players.map((_, pi) => caboHand(pi)); }
+
+function currentCaboPoints() {
+  const caller = state.caboRound.caller === null ? -1 : state.caboRound.caller;
+  return caboRoundPoints(currentCaboSums(), currentCaboHands(), caller);
+}
+
+function caboTotal(pi) {
+  return state.rounds.reduce((t, r) => {
+    t += (r.points[pi] || 0);
+    if (state.caboRules.exact100 && t === state.caboRules.target) t = Math.round(t / 2);
+    return t;
+  }, 0);
+}
+
+function caboCalls(pi) { return state.rounds.filter(r => r.caller === pi).length; }
+
+function caboRoundReady() {
+  return state.players.every((_, pi) => caboHasEntry(pi)) && state.caboRound.caller !== null;
+}
+
+function setCaboCaller(pi) {
+  state.caboRound.caller = (state.caboRound.caller === pi) ? null : pi;
+  render();
+}
+
+function setCaboRule(key, val) {
+  state.caboRules[key] = val;
+  render();
+}
+
+function toggleCaboRule(key) {
+  state.caboRules[key] = !state.caboRules[key];
+  render();
+}
+
+function resetCaboRound() {
+  state.caboRound = { hands: {}, manual: {}, caller: null };
+}
+
+function finalizeCaboRound() {
+  if (!caboRoundReady()) return;
+  pushHistory();
+  const sums   = currentCaboSums();
+  const hands  = currentCaboHands();
+  const caller = state.caboRound.caller;
+  const kami   = caboKamikazeIndex(hands);
+  state.rounds.push({
+    points:   caboRoundPoints(sums, hands, caller),
+    sums:     sums,
+    caller:   caller,
+    kamikaze: kami >= 0 ? kami : null
+  });
+  resetCaboRound();
+  render();
+}
+
+function restartCabo() {
+  state.rounds = [];
+  resetCaboRound();
+  state.screen = 'scoring';
+  render();
+}
+
+// ─── Cabo: Kartenpicker ───────────────────────────────────────────────────
+function openCaboPicker(pi) {
+  state.caboPicker = { open: true, pi, cards: [...caboHand(pi)], manual: caboManual(pi) };
+  render();
+}
+
+function closeCaboPicker() {
+  state.caboPicker.open = false;
+  render();
+}
+
+function caboPickerSum() {
+  const cp = state.caboPicker;
+  if (cp.cards.length) return cp.cards.reduce((a, b) => a + b, 0);
+  return cp.manual === null ? 0 : cp.manual;
+}
+
+function caboPickAdd(v) {
+  const cp = state.caboPicker;
+  if (cp.cards.length >= 10) return;
+  cp.cards.push(v);
+  cp.manual = null;
+  const mi = document.getElementById('cabo-manual');
+  if (mi) mi.value = '';
+  updateCaboPickerUI();
+}
+
+function caboPickRemove(v) {
+  const cp = state.caboPicker;
+  const i  = cp.cards.lastIndexOf(v);
+  if (i >= 0) cp.cards.splice(i, 1);
+  updateCaboPickerUI();
+}
+
+function caboPickClear() {
+  state.caboPicker.cards  = [];
+  state.caboPicker.manual = null;
+  const mi = document.getElementById('cabo-manual');
+  if (mi) mi.value = '';
+  updateCaboPickerUI();
+}
+
+function caboPickManual(val) {
+  const n = parseInt(val);
+  state.caboPicker.manual = isNaN(n) ? null : Math.max(0, n);
+  state.caboPicker.cards  = [];
+  updateCaboPickerUI();
+}
+
+function updateCaboPickerUI() {
+  const body = document.getElementById('cabo-picker-body');
+  if (body) body.innerHTML = caboPickerBody();
+  const tot = document.getElementById('cabo-picker-total');
+  if (tot) tot.textContent = caboPickerSum();
+  const cfm = document.getElementById('cabo-picker-confirm');
+  if (cfm) cfm.textContent = `Übernehmen · ${caboPickerSum()} Pkt`;
+}
+
+function confirmCaboPicker() {
+  pushHistory();
+  const cp = state.caboPicker;
+  state.caboRound.hands[cp.pi]  = [...cp.cards];
+  state.caboRound.manual[cp.pi] = cp.cards.length ? null : cp.manual;
+  state.caboPicker.open = false;
+  render();
+}
+
+function caboPickerBody() {
+  const cp     = state.caboPicker;
+  const counts = {};
+  cp.cards.forEach(v => counts[v] = (counts[v] || 0) + 1);
+  const kami = state.caboRules.kamikaze && isKamikazeHand(cp.cards);
+
+  const chips = [...cp.cards].sort((a, b) => a - b)
+    .map(v => `<span class="sel-chip cabo" onclick="caboPickRemove(${v})">${v} ✕</span>`).join('');
+
+  const chipBox = cp.cards.length
+    ? chips + `<span style="margin-left:4px">= <strong>${caboPickerSum()}</strong> Pkt · ${cp.cards.length} ${cp.cards.length === 1 ? 'Karte' : 'Karten'}</span>`
+    : (cp.manual !== null
+        ? `<span class="sel-chip manual">Summe ${cp.manual}</span><span style="margin-left:4px">direkt eingetragen</span>`
+        : '<span style="color:var(--muted)">Noch keine Karten erfasst</span>');
+
+  return `
+    ${kami ? `<div class="kami-banner">💥 Kamikaze! 0 Punkte · alle anderen 50</div>` : ''}
+    <div class="card-grid">
+      ${[0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(v => `
+        <button class="card-btn cabo${counts[v] ? ' sel' : ''}" onclick="caboPickAdd(${v})">
+          ${v}${counts[v] ? `<span class="card-cnt">${counts[v]}×</span>` : ''}
+        </button>
+      `).join('')}
+    </div>
+    <div class="picker-hint">Karte antippen zum Hinzufügen · Chip antippen zum Entfernen</div>
+    <div class="picker-selected">${chipBox}</div>
+    ${cp.cards.length || cp.manual !== null
+      ? `<button class="btn-ghost" onclick="caboPickClear()">Eingabe leeren</button>` : ''}
+  `;
+}
+
+function renderCaboPicker() {
+  const cp   = state.caboPicker;
+  const name = state.players[cp.pi];
+  return `
+  <div class="picker-overlay" onclick="closeCaboPicker()">
+    <div class="picker-sheet" onclick="event.stopPropagation()">
+      <div class="picker-handle"></div>
+      <div class="picker-hdr">
+        <div class="picker-name" style="color:${COLORS[cp.pi]}">${esc(name)}</div>
+        <div class="picker-total cabo" id="cabo-picker-total">${caboPickerSum()}</div>
+      </div>
+      <div id="cabo-picker-body">${caboPickerBody()}</div>
+      <div class="manual-row">
+        <label>Alternativ die Summe direkt eintippen · ersetzt die erfassten Karten</label>
+        <input type="number" inputmode="numeric" min="0" id="cabo-manual"
+          value="${cp.manual === null ? '' : cp.manual}"
+          oninput="caboPickManual(this.value)">
+      </div>
+      <button class="btn-primary" id="cabo-picker-confirm" style="background:#a15c07"
+        onclick="confirmCaboPicker()">Übernehmen · ${caboPickerSum()} Pkt</button>
+      <button class="btn-secondary" onclick="closeCaboPicker()">Abbrechen</button>
+    </div>
+  </div>`;
+}
+
+// ─── Cabo: Rendering ──────────────────────────────────────────────────────
+function renderCaboScoring() {
+  const g        = GAMES[state.game];
+  const target   = state.caboRules.target;
+  const roundNum = state.rounds.length + 1;
+  const totals   = state.players.map((_, pi) => caboTotal(pi));
+  const minTotal = Math.min(...totals);
+  const over     = totals.some(t => t > target);
+  const allIn    = state.players.every((_, pi) => caboHasEntry(pi));
+  const pts      = currentCaboPoints();
+  const kami     = caboKamikazeIndex(currentCaboHands());
+  const ready    = caboRoundReady();
+
+  return `
+  <div class="hdr" style="background:linear-gradient(135deg,#a15c07 0%,#d18c25 100%)">
+    <button class="btn-back" onclick="goSetup()">‹</button>
+    <h1>${g.icon} Cabo · Runde ${roundNum}</h1>
+    <button class="btn-clear" onclick="clearScores()" title="Alle zurücksetzen">✕</button>
+    <button class="btn-undo" onclick="undo()" ${state.history.length ? '' : 'disabled'} title="Rückgängig">↩</button>
+  </div>
+  <div class="content">
+    ${state.rounds.length ? `
+      <div class="sec-label">Rundenübersicht · 📣 = Cabo-Ansage</div>
+      <div class="round-table-wrap">
+        <table class="round-table cabo-tbl">
+          <thead><tr>
+            <th></th>
+            ${state.players.map((name, pi) => `<th>${esc(name)}</th>`).join('')}
+          </tr></thead>
+          <tbody>
+            ${state.rounds.map((r, ri) => `
+              <tr>
+                <td>R${ri + 1}${(r.kamikaze !== null && r.kamikaze !== undefined) ? ' 💥' : ''}</td>
+                ${state.players.map((_, pi) => `
+                  <td class="${r.points[pi] === 0 ? 'td-zero' : ''}${r.caller === pi ? ' td-caller' : ''}">${r.points[pi]}</td>
+                `).join('')}
+              </tr>
+            `).join('')}
+            <tr class="round-total-row">
+              <td>Σ</td>
+              ${totals.map(t => `<td class="${t > target ? 'td-out' : (t === minTotal ? 'td-low' : '')}">${t}</td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    ` : ''}
+
+    <div class="score-section">
+      <div class="sec-hdr cabo">Runde ${roundNum} · Auslagen erfassen</div>
+      <div class="player-pick-grid">
+        ${state.players.map((name, pi) => {
+          const has  = caboHasEntry(pi);
+          const man  = caboManual(pi) !== null;
+          const hand = caboHand(pi);
+          const chipHtml = man
+            ? `<span class="cabo-card-chip manual">Summe</span>`
+            : (hand.length
+                ? [...hand].sort((a, b) => a - b).map(v => `<span class="cabo-card-chip">${v}</span>`).join('')
+                : `<span class="cabo-card-chip empty">noch leer</span>`);
+          return `
+          <div class="player-pick-card" onclick="openCaboPicker(${pi})"
+               style="border-color:${has ? COLORS[pi] + '55' : 'transparent'}">
+            <div class="ppc-name" style="color:${COLORS[pi]}">${esc(name)}${state.caboRound.caller === pi ? ' 📣' : ''}</div>
+            <div class="cabo-hand">${chipHtml}</div>
+            <div class="ppc-score cabo">${has ? caboSum(pi) : '–'}</div>
+            <div class="ppc-sum">Kartensumme</div>
+            ${allIn && state.caboRound.caller !== null
+              ? `<div class="ppc-pts${pts[pi] > 0 ? ' high' : ''}">${pts[pi]} Rundenpunkte</div>`
+              : `<div class="ppc-hint">✎ antippen</div>`}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="score-section">
+      <div class="sec-hdr cabo">Wer hat Cabo angesagt?</div>
+      <div class="caller-btns">
+        ${state.players.map((name, pi) => `
+          <button class="caller-btn${state.caboRound.caller === pi ? ' sel' : ''}"
+            onclick="setCaboCaller(${pi})">${esc(name)}</button>
+        `).join('')}
+        <button class="caller-btn${state.caboRound.caller === -1 ? ' sel' : ''}"
+          onclick="setCaboCaller(-1)">Niemand</button>
+      </div>
+      <div class="rule-note">
+        Der Spieler mit der niedrigsten Summe verbucht 0 Punkte. Liegt der Ansager nicht vorn,
+        zahlt er seine Summe plus ${state.caboRules.penalty} Strafpunkte. Bei Gleichstand gewinnt der Ansager.
+        ${state.caboRules.kamikaze ? ' Kamikaze (12+12+13+13) schickt alle anderen auf 50 Punkte.' : ''}
+      </div>
+    </div>
+
+    ${kami >= 0 && allIn ? `<div class="hint-box">💥 <strong>Kamikaze bei ${esc(state.players[kami])}!</strong> Alle anderen bekommen 50 Punkte.</div>` : ''}
+
+    ${state.caboPicker.open ? renderCaboPicker() : ''}
+
+    ${over ? `
+      <button class="btn-primary" style="background:#b8860b" onclick="showResults()">
+        Spiel beenden & Ergebnis 🏆
+      </button>
+    ` : ''}
+    <button class="btn-primary" style="background:#a15c07${over ? ';opacity:.75' : ''}"
+      ${ready ? '' : 'disabled'} onclick="finalizeCaboRound()">
+      ${ready ? 'Runde abschließen →' : (allIn ? 'Cabo-Ansager wählen' : 'Alle Auslagen erfassen')}
+    </button>
+  </div>
+  <div class="total-bar" style="background:#a15c07">
+    ${state.players.map((name, pi) => `
+      <div class="total-player">
+        <div class="total-name">${esc(name)}</div>
+        <div class="total-pts">${totals[pi]}</div>
+        <div class="total-lbl">${totals[pi] > target ? '💀 über ' + target : (totals[pi] === minTotal ? '🏆 vorn' : 'Punkte')}</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderCaboResults() {
+  const g = GAMES[state.game];
+  const data = state.players
+    .map((name, pi) => ({ name, pi, total: caboTotal(pi), calls: caboCalls(pi) }))
+    .sort((a, b) => a.total - b.total || b.calls - a.calls);
+
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'];
+  let rank = 1;
+  const ranked = data.map((r, i) => {
+    if (i > 0 && (r.total !== data[i-1].total || r.calls !== data[i-1].calls)) rank = i + 1;
+    return { ...r, rank };
+  });
+  const best     = ranked[0].total;
+  const tieBreak = ranked.length > 1 && ranked[0].total === ranked[1].total && ranked[0].calls !== ranked[1].calls;
+  const trueTie  = ranked.length > 1 && ranked[0].rank === ranked[1].rank;
+
+  return `
+  <div class="hdr" style="background:linear-gradient(135deg,#a15c07 0%,#d18c25 100%)">
+    <button class="btn-back" onclick="state.screen='scoring';render()">‹</button>
+    <h1>🏆 Ergebnis</h1>
+  </div>
+  <div class="content">
+    <div class="sec-label" style="text-align:center">${g.icon} Cabo · ${state.rounds.length} Runden · wenigste Punkte gewinnen</div>
+    ${ranked.map((r, i) => `
+      <div class="result-card${r.rank === 1 ? ' winner' : ''}">
+        <div class="result-rank">${medals[r.rank-1] || r.rank + '.'}</div>
+        <div>
+          <div class="result-name" style="color:${COLORS[r.pi]}">${esc(r.name)}</div>
+          <div class="result-diff">${r.rank === 1 ? '🎉 Gewinner!' : `${r.total - best} Punkte mehr`} · ${r.calls}× Cabo</div>
+        </div>
+        <div class="result-score" style="color:#a15c07">${r.total}</div>
+      </div>
+    `).join('')}
+    ${tieBreak ? `<div class="hint-box">📣 <strong>Punktgleich entschieden:</strong> Es gewinnt, wer öfter Cabo angesagt hat.</div>` : ''}
+    ${trueTie ? `<div class="hint-box">🤝 <strong>Gleichstand!</strong> Gleiche Punkte und gleich viele Cabo-Ansagen.</div>` : ''}
+    <button class="btn-primary" style="margin-top:16px" onclick="goHome()">Neues Spiel</button>
+    <button class="btn-secondary" onclick="restartCabo()">Neue Partie (gleiche Spieler)</button>
   </div>`;
 }
 
