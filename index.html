@@ -426,6 +426,7 @@ input[type=number] { -moz-appearance: textfield; }
 .td-win { color: #b8860b !important; }
 .td-win::after { content: ' 🏆'; font-size: 11px; }
 .sec-hdr.flip7 { background: #1a3a5c; }
+.sec-hdr.seasalt { background: #0f6b7a; }
 
 /* ── Flip 7 player tap cards ── */
 .player-pick-grid {
@@ -704,6 +705,13 @@ const GAMES = {
     gameType: 'rounds', winScore: 200,
   },
 
+  seasalt: {
+    id: 'seasalt', name: 'Sea Salt & Paper', icon: '🐚', iconBg: '#cffafe',
+    desc: 'Kartenspiel mit Duos & Sammlungen (2–4 Spieler) · Ziel 40/35/30 Punkte',
+    min: 2, max: 4,
+    gameType: 'rounds', winScores: { 2: 40, 3: 35, 4: 30 }, accent: '#0f6b7a', manualRounds: true,
+  },
+
   artengarten: {
     id: 'artengarten', name: 'Artengarten', icon: '🌿', iconBg: '#dcfce7',
     desc: 'Zoo-Aufbau mit Tieren & Artenschutz (1–4 Spieler)',
@@ -936,6 +944,10 @@ function updateHabBadges(catId) {
 }
 
 // ─── Rendering ────────────────────────────────────────────────────────────
+function winScore() {
+  const g = GAMES[state.game];
+  return g.winScores ? g.winScores[state.players.length] : g.winScore;
+}
 function isRoundGame() { return state.game && GAMES[state.game].gameType === 'rounds'; }
 
 function render() {
@@ -1584,7 +1596,8 @@ function renderRoundScoring() {
   const g = GAMES[state.game];
   const roundNum = state.rounds.length + 1;
   const totals = state.players.map((_, pi) => playerRoundTotal(pi));
-  const won = totals.some(t => t >= g.winScore);
+  const win = winScore();
+  const won = totals.some(t => t >= win);
 
   return `
   <div class="hdr">
@@ -1611,13 +1624,33 @@ function renderRoundScoring() {
             `).join('')}
             <tr class="round-total-row">
               <td>Σ</td>
-              ${totals.map(t => `<td class="${t >= g.winScore ? 'td-win' : ''}">${t}</td>`).join('')}
+              ${totals.map(t => `<td class="${t >= win ? 'td-win' : ''}">${t}</td>`).join('')}
             </tr>
           </tbody>
         </table>
       </div>
     ` : ''}
 
+    ${g.manualRounds ? `
+    <div class="score-section">
+      <div class="sec-hdr seasalt">Runde ${roundNum} · Ziel ${win} Punkte</div>
+      <div class="score-row">
+        <div class="inputs-row">
+          ${state.players.map((name, pi) => `
+            <div class="num-wrap">
+              <div class="num-pname" style="color:${COLORS[pi]}">${esc(name)}</div>
+              <div class="num-ctrl">
+                <button class="nbtn" onclick="adjRound(${pi},-1)">−</button>
+                <input class="nfield" id="rsc-${pi}" type="number" inputmode="numeric" min="0"
+                  value="${state.currentRound[pi] || 0}"
+                  oninput="setRoundScore(${pi},this.value)">
+                <button class="nbtn" onclick="adjRound(${pi},1)">+</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>` : `
     <div class="score-section">
       <div class="sec-hdr flip7">Runde ${roundNum} · Spieler antippen</div>
       <div class="player-pick-grid">
@@ -1631,6 +1664,7 @@ function renderRoundScoring() {
         `).join('')}
       </div>
     </div>
+`}
     ${state.cardPicker.open ? renderCardPicker() : ''}
 
     ${won ? `
@@ -1642,12 +1676,12 @@ function renderRoundScoring() {
       Runde abschließen →
     </button>
   </div>
-  <div class="total-bar" style="background:#1a3a5c">
+  <div class="total-bar" style="background:${g.accent || '#1a3a5c'}">
     ${state.players.map((name, pi) => `
       <div class="total-player">
         <div class="total-name">${esc(name)}</div>
         <div class="total-pts" id="rtot-${pi}">${totals[pi] + (state.currentRound[pi] || 0)}</div>
-        <div class="total-lbl">${totals[pi] >= g.winScore ? '🏆 Gewonnen!' : 'Punkte'}</div>
+        <div class="total-lbl">${totals[pi] >= win ? '🏆 Gewonnen!' : 'Punkte'}</div>
       </div>
     `).join('')}
   </div>`;
@@ -1682,7 +1716,7 @@ function renderRoundResults() {
           <div class="result-name" style="color:${COLORS[r.pi]}">${esc(r.name)}</div>
           <div class="result-diff">${r.rank===1 ? '🎉 Gewinner!' : `${max - r.total} Punkte zurück`}</div>
         </div>
-        <div class="result-score" style="color:#1a3a5c">${r.total}</div>
+        <div class="result-score" style="color:${g.accent || '#1a3a5c'}">${r.total}</div>
       </div>
     `).join('')}
     ${tied ? `<div class="hint-box">🤝 <strong>Gleichstand!</strong></div>` : ''}
